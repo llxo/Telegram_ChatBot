@@ -398,6 +398,7 @@
   "api.auth.loginFailed": "登入失敗: {error}",
   "api.auth.unauthorized": "未授權",
   "api.auth.forbidden": "權限不足，需要管理員",
+  "api.auth.noAvailableAdmin": "沒有可用的管理員帳戶",
   "api.auth.sessionExpired": "工作階段已過期",
   "api.auth.userNotFound": "使用者不存在",
   "api.auth.recoverFailed": "重設失敗",

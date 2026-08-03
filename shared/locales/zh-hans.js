@@ -595,6 +595,7 @@
   "api.auth.loginFailed": "登录失败: {error}",
   "api.auth.unauthorized": "未授权",
   "api.auth.forbidden": "权限不足，需要管理员",
+  "api.auth.noAvailableAdmin": "没有可用的管理员账户",
   "api.auth.sessionExpired": "会话已过期",
   "api.auth.userNotFound": "用户不存在",
   "api.auth.recoverFailed": "重置失败",

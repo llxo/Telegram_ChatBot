@@ -420,6 +420,7 @@
   "api.auth.loginFailed": "Login failed: {error}",
   "api.auth.unauthorized": "Unauthorized",
   "api.auth.forbidden": "Forbidden: admin required",
+  "api.auth.noAvailableAdmin": "No available admin account",
   "api.auth.sessionExpired": "Session expired",
   "api.auth.userNotFound": "User not found",
   "api.auth.recoverFailed": "Reset failed",

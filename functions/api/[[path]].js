@@ -1276,14 +1276,20 @@ async function handleTelegramLogin(initData, db, kv, t, request) {
     const adminIds = parseAdminIds(await db.getSetting('ADMIN_IDS'));
     if (!adminIds.includes(tgId)) return err(t('auth.forbidden'), 403);
 
-    // 影子 web_user 账户（按用户名 tg_<id> 查找或创建）
-    const shadowUser = `tg_${tgId}`;
-    let webUser = await db.getWebUser(shadowUser);
-    if (!webUser) {
-      const hash = await hashPw(genToken(32));
-      // Mini App 登录仅 ADMIN_IDS 白名单用户可达，影子账号为管理员
-      webUser = await db.createWebUser(shadowUser, hash, { isAdmin: true });
+    // Mini App 登录：复用 web_users 表中已有的管理员账户（与 /login 用户名一致），
+    // 不再创建 tg_<id> 影子账户。多个 Telegram 管理员会共享同一个 web_user。
+    // 选取策略：所有可用管理员中 id 最小的一个；无可用管理员时报错。
+    const allWebUsers = await db.getAllWebUsersRaw();
+    const adminUsers = allWebUsers.filter((u) => u.is_admin === 1 || u.is_admin === true || u.is_admin === '1');
+    const availableAdmins = [];
+    for (const u of adminUsers) {
+      if (!(await isBootstrapAdminDisabled({ kv, user: u }))) availableAdmins.push(u);
     }
+    if (availableAdmins.length === 0) {
+      return err(t('auth.noAvailableAdmin'), 403);
+    }
+    availableAdmins.sort((a, b) => Number(a.id) - Number(b.id));
+    const webUser = availableAdmins[0];
 
     const sessionTtl = await getLoginSessionTtl(db);
     const token = await createSession(kv, webUser.id, sessionTtl);
