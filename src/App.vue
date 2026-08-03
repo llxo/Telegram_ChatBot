@@ -369,9 +369,9 @@ onMounted(async () => {
   window.addEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired)
 
   // Telegram Mini App 自动登录：
-  // 替换原来 200ms 硬等，改用事件 + 轮询（最长 1.5s），避免竞态导致落到登录页。
-  // 不阻塞 routeReady：自动登录期间由 isAutoLoginChecking 遮罩盖住登录表单，避免闪烁。
-  if (!auth.isLoggedIn) {
+  // 仅在 Telegram WebApp 环境 或 /miniapp/ 路径下触发自动登录。
+  // 访问 /login 等页面上若不在 Mini App 环境，直接跳过，避免误显示"身份验证未通过"。
+  if (!auth.isLoggedIn && (window.Telegram?.WebApp || route.path.startsWith('/miniapp'))) {
     auth.runAutoLogin().then((result) => {
       if (result === 'success') {
         // 仅在仍不在登录相关页时替换，避免覆盖用户已主动进入的页面
