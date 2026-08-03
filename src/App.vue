@@ -200,11 +200,19 @@ const themeMode = ref('system')
 const themeMenuOpen = ref(false)
 const isTelegramMiniApp = ref(false)
 
-// 检测 Telegram Mini App 环境：
-// 1. 添加 .tg 类名到 <html>（供 CSS 使用）
-// 2. 设置响应式 isTelegramMiniApp（供模板 v-if 使用）
+// 检测是否为 Telegram Mini App 环境（多维度判断）：
+// 1. 路径为 /miniapp/
+// 2. URL 含 tgWebAppData 参数（Telegram 注入）
+// 3. window.Telegram?.WebApp 对象存在
 function detectTelegramWebApp() {
-  if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+  if (typeof window === 'undefined') return false
+
+  const path = window.location.pathname
+  const hasTgParam = window.location.search.includes('tgWebAppData') || window.location.hash.includes('tgWebAppData')
+  const hasTgObj = !!(window.Telegram?.WebApp)
+  const isMiniAppPath = path.startsWith('/miniapp')
+
+  if (isMiniAppPath || hasTgParam || hasTgObj) {
     document.documentElement.classList.add('tg')
     isTelegramMiniApp.value = true
     return true
@@ -212,14 +220,14 @@ function detectTelegramWebApp() {
   return false
 }
 
-// 立即检测（同步脚本此时通常已就绪）
+// 立即检测
 detectTelegramWebApp()
 
-// 兜底：DOMContentLoaded 后再检测一次
+// 兜底：多时机重复检测
 if (typeof window !== 'undefined') {
   document.addEventListener('DOMContentLoaded', detectTelegramWebApp)
-  // 额外延迟兜底（应对脚本注入延迟）
-  setTimeout(detectTelegramWebApp, 300)
+  setTimeout(detectTelegramWebApp, 200)
+  setTimeout(detectTelegramWebApp, 500)
   setTimeout(detectTelegramWebApp, 1000)
 }
 
@@ -388,9 +396,9 @@ onMounted(async () => {
   window.addEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired)
 
   // Telegram Mini App 自动登录：
-  // 仅在 Telegram WebApp 环境 或 /miniapp/ 路径下触发自动登录。
-  // 访问 /login 等页面上若不在 Mini App 环境，直接跳过，避免误显示"身份验证未通过"。
-  if (!auth.isLoggedIn && (window.Telegram?.WebApp || route.path.startsWith('/miniapp'))) {
+  // 仅在 Telegram Mini App 环境（路径 /miniapp/ 或 Telegram 对象/参数）下触发。
+  // 访问 /login 等页面时若不在 Mini App 环境，直接跳过，避免误显示"身份验证未通过"。
+  if (!auth.isLoggedIn && isTelegramMiniApp.value) {
     auth.runAutoLogin().then((result) => {
       if (result === 'success') {
         // 仅在仍不在登录相关页时替换，避免覆盖用户已主动进入的页面
