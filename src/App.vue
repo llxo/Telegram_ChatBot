@@ -198,10 +198,24 @@ const routeReady = ref(false)
 const themeMode = ref('system')
 const themeMenuOpen = ref(false)
 
-// 在模块加载时立即检测 Telegram Mini App 环境（先于模板渲染），
-// 通过 CSS 类名隐藏退出按钮，避免依赖 Vue 响应式时序。
-if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
-  document.documentElement.classList.add('tg')
+// 检测 Telegram Mini App 环境，添加 .tg 类名用于隐藏退出按钮等。
+// 多时机检测：模块加载时 + DOMContentLoaded + 短延迟兜底，确保捕获异步注入的 Telegram 对象。
+function detectTelegramWebApp() {
+  if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+    document.documentElement.classList.add('tg')
+    return true
+  }
+  return false
+}
+
+// 立即检测（同步脚本此时通常已就绪）
+detectTelegramWebApp()
+
+// 兜底：DOMContentLoaded 后再检测一次
+if (typeof window !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', detectTelegramWebApp)
+  // 额外延迟兜底（应对脚本注入延迟）
+  setTimeout(detectTelegramWebApp, 300)
 }
 
 const t = i18n.t
