@@ -11,7 +11,7 @@ import {
 import { ensureAdminInitializedOnce, getBootstrapStatus, isBootstrapAdminDisabled, registerInitialAdmin, adoptBootstrapAdmin, BootstrapError } from '../_shared/admin-bootstrap.js';
 import { verifyTOTP, generateTOTPSecret } from '../_shared/totp.js';
 import { renderCaptchaPNG } from '../_shared/captcha.js';
-import { setupMiniAppMenu, getOrCreateThread } from '../_shared/bot.js';
+import { setupMiniAppMenu, getOrCreateThread, DEPLOY_VERSION } from '../_shared/bot.js';
 import { normalizeBotLocale, createBotT } from '../_shared/bot-i18n.js';
 import { exportBusinessDataSql, importBusinessDataSql, parseBusinessSql } from '../_shared/db-sql.js';
 import { createT, normalizeLocale } from '../../shared/i18n.js';
@@ -1303,7 +1303,9 @@ async function handleTelegramLogin(initData, db, kv, t, request) {
  * 通过 KV 键 miniapp_menu_set 标记已设置，避免重复调用 Telegram Bot API。
  */
 async function ensureMiniAppMenu(kv, db) {
-  const already = await kv.get('miniapp_menu_set').catch(() => null);
+  // 缓存键包含部署版本，版本变化（重新部署）时自动重新设置 Menu Button
+  const cacheKey = `miniapp_menu_set:${DEPLOY_VERSION}`;
+  const already = await kv.get(cacheKey).catch(() => null);
   if (already) return;
 
   const botToken = await db.getSetting('BOT_TOKEN').catch(() => '');
@@ -1314,7 +1316,7 @@ async function ensureMiniAppMenu(kv, db) {
   const miniAppUrl = `${origin}/miniapp/`;
   await setupMiniAppMenu(new TG(botToken), miniAppUrl);
   // 标记已设置（10 天后自动过期，可以重新尝试）
-  await kv.put('miniapp_menu_set', '1', { expirationTtl: 864000 }).catch(() => {});
+  await kv.put(cacheKey, '1', { expirationTtl: 864000 }).catch(() => {});
 }
 
 /**

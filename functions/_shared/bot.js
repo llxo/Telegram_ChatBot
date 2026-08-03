@@ -9,6 +9,24 @@ import {
   serializeMessageFilterRules,
 } from '../../shared/message-filters.js';
 
+// ── 部署版本（用于 Mini App URL 缓存穿透）──────────────────────────────
+// 基于 dist/index.html 内容哈希，部署后 HTML 变化时 URL 查询参数随之变化，
+// 强制 Telegram WebView 拉取新入口，避免旧 JS 缓存导致新功能不可见。
+export const DEPLOY_VERSION = (() => {
+  try {
+    if (typeof require === 'undefined') return 'v1';
+    const fs = require('fs');
+    const path = require('path');
+    const crypto = require('crypto');
+    const idx = path.join(__dirname, '..', '..', 'dist', 'index.html');
+    if (fs.existsSync(idx)) {
+      const content = fs.readFileSync(idx);
+      return crypto.createHash('md5').update(content).digest('hex').slice(0, 8);
+    }
+  } catch { /* Workers / 无文件系统 */ }
+  return 'v1';
+})();
+
 // ── 验证辅助方法 ─────────────────────────────────────────────────────────────
 const VERIFY_OPTION_COUNT = 6;
 const VERIFY_OPTION_COLUMNS = 3;
@@ -732,8 +750,12 @@ export async function setupCommands(tg, locale = 'zh-hans') {
 export async function setupMiniAppMenu(tg, miniAppUrl, text = '面板') {
   if (!miniAppUrl || typeof miniAppUrl !== 'string') return;
   try {
+    // 追加版本查询参数（基于部署时间），部署后 URL 变化可绕过 Telegram WebView 顽固缓存
+    const versionedUrl = miniAppUrl.includes('?')
+      ? `${miniAppUrl}&v=${DEPLOY_VERSION}`
+      : `${miniAppUrl}?v=${DEPLOY_VERSION}`;
     await tg.setChatMenuButton({
-      menuButton: { type: 'web_app', text, web_app: { url: miniAppUrl } },
+      menuButton: { type: 'web_app', text, web_app: { url: versionedUrl } },
     });
   } catch {
     // 静默跳过，不影响核心流程

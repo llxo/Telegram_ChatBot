@@ -124,6 +124,7 @@
         <div class="alert alert-error">
           <strong>{{ autoLoginStatus === 'notDetected' ? t('store.auth.telegramNotDetected') : t('store.auth.telegramLoginFailed') }}</strong>
           <p class="auto-login-desc">{{ autoLoginStatus === 'notDetected' ? t('store.auth.telegramNotDetectedDesc') : t('store.auth.telegramLoginFailedDesc') }}</p>
+          <p v-if="autoLoginStatus !== 'notDetected' && auth.autoLoginError" class="auto-login-detail">{{ t('store.auth.telegramLoginFailedDetail', { error: auth.autoLoginError }) }}</p>
         </div>
         <button class="btn-primary w-full" @click="handleRetryAutoLogin">{{ t('store.auth.telegramRetry') }}</button>
         <button class="btn-ghost w-full auto-login-switch" @click="handleSwitchToPassword">{{ t('store.auth.telegramSwitchToPassword') }}</button>

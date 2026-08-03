@@ -255,7 +255,22 @@ app.all('/api/{*path}', async (req, res) => {
 // 静态文件 — 前端构建产物
 const distDir = path.join(ROOT, 'dist')
 if (fs.existsSync(distDir)) {
-  app.use(express.static(distDir))
+  // 分层缓存：HTML 入口每次都向服务器验证（no-cache），
+  // 带内容哈希的静态资源（app-XXXX.js/css）长期缓存（1 年）。
+  // 这样重新部署后，用户下一次打开就能拿到新版入口，
+  // 而未被改动的哈希资源仍走本地缓存，不影响加载速度。
+  app.use(express.static(distDir, {
+    setHeaders(res, filePath) {
+      if (filePath.endsWith('.html')) {
+        // no-store：彻底不让任何层（浏览器/CDN/WebView）缓存 HTML 入口
+        res.setHeader('Cache-Control', 'no-store, max-age=0')
+      } else if (/(?:^|[-_])[0-9a-zA-Z]{6,}\.[a-z0-9]+(?:\?.*)?$/.test(path.basename(filePath))) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+      } else {
+        res.setHeader('Cache-Control', 'no-cache')
+      }
+    },
+  }))
 
   // SPA 回退 — 对已知探测路径返回 404 而非 SPA 页面，避免掩盖真实端点
   const PROBE_PATTERNS = [

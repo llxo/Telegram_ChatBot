@@ -662,6 +662,7 @@
   "store.auth.telegramNotDetectedDesc": "请通过 Bot 菜单或链接在 Telegram 内重新打开。",
   "store.auth.telegramLoginFailed": "Telegram 登录失败",
   "store.auth.telegramLoginFailedDesc": "身份验证未通过，请使用管理员 Telegram 账号打开，或改用账号密码登录。",
+  "store.auth.telegramLoginFailedDetail": "服务器返回：{error}。常见原因：后台 BOT_TOKEN 与 BotFather 不一致（被 Reset/重建后旧 token 失效），或 ADMIN_IDS 未包含当前账号。请登录后台 /settings 核对 BOT_TOKEN 与 ADMIN_IDS。",
   "store.auth.telegramRetry": "重试",
   "store.auth.telegramSwitchToPassword": "改用账号密码登录",
 

@@ -106,6 +106,9 @@ export const useAuthStore = defineStore('auth', () => {
    * 等待 Telegram Web App 注入 initData。
    * 结合 web-app-ready 事件 + 短轮询，最长等待 maxWaitMs（默认 1500ms）。
    * 返回 initData 字符串；非 Telegram 环境或超时返回 null。
+   *
+   * 兼容 Telegram Desktop：桌面版不注入 window.Telegram.WebApp，
+   * 而是将 initData 放在 URL 的 #tgWebAppData= 片段中。
    */
   function waitForTelegramInitData(maxWaitMs = 1500) {
     return new Promise((resolve) => {
@@ -113,13 +116,28 @@ export const useAuthStore = defineStore('auth', () => {
         resolve(null)
         return
       }
+
+      // 从 URL 片段解析 initData（Telegram Desktop 兼容）
+      const initDataFromHash = () => {
+        const hash = location.hash
+        if (!hash || !hash.includes('tgWebAppData=')) return null
+        const params = new URLSearchParams(hash.slice(1))
+        return params.get('tgWebAppData') || null
+      }
+
       const webApp = window.Telegram?.WebApp
-      // 已经注入则立即返回
+      // 已经注入则立即返回（移动端）
       if (webApp?.initData) {
         resolve(webApp.initData)
         return
       }
-      // 没有 WebApp 对象：不是 Telegram Mini App 环境
+      // 桌面版 fallback：从 URL 片段获取
+      const fromHash = initDataFromHash()
+      if (fromHash) {
+        resolve(fromHash)
+        return
+      }
+      // 没有 WebApp 对象且 URL 片段也没有：不是 Telegram Mini App 环境
       if (!webApp) {
         resolve(null)
         return
@@ -137,13 +155,14 @@ export const useAuthStore = defineStore('auth', () => {
       // 1) Telegram 客户端就绪事件（initData 此时通常已可用）
       try {
         webApp.onEvent?.('web-app-ready', () => {
-          finish(webApp.initData || null)
+          finish(webApp.initData || initDataFromHash() || null)
         })
       } catch { /* noop */ }
 
       // 2) 兜底轮询：每 150ms 检查一次 initData 是否已注入
       const pollTimer = setInterval(() => {
         if (webApp?.initData) finish(webApp.initData)
+        else if (initDataFromHash()) finish(initDataFromHash())
       }, 150)
 
       // 3) 超时兜底

@@ -458,6 +458,7 @@
   "store.auth.telegramNotDetectedDesc": "請透過 Bot 選單或連結在 Telegram 內重新開啟。",
   "store.auth.telegramLoginFailed": "Telegram 登入失敗",
   "store.auth.telegramLoginFailedDesc": "身分驗證未通過，請使用管理員 Telegram 帳號開啟，或改用帳號密碼登入。",
+  "store.auth.telegramLoginFailedDetail": "伺服器回傳：{error}。常見原因：後台 BOT_TOKEN 與 BotFather 不一致（被 Reset/重建後舊 token 失效），或 ADMIN_IDS 未包含當前帳號。請登入後台 /settings 核對 BOT_TOKEN 與 ADMIN_IDS。",
   "store.auth.telegramRetry": "重試",
   "store.auth.telegramSwitchToPassword": "改用帳號密碼登入",
   "bot.filter.manageHint": "可直接點擊側邊按鈕新增文字 / 正則規則，或刪除既有規則。輸入過程中傳送 /cancel 可取消。",
