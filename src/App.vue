@@ -67,6 +67,7 @@
           </RouterLink>
 
           <button
+            v-if="!isTelegramMiniApp"
             class="btn-icon logout-btn"
             @click="handleLogout"
             :title="t('app.logout')"
@@ -197,12 +198,15 @@ const glassEnabled = ref(false)
 const routeReady = ref(false)
 const themeMode = ref('system')
 const themeMenuOpen = ref(false)
+const isTelegramMiniApp = ref(false)
 
-// 检测 Telegram Mini App 环境，添加 .tg 类名用于隐藏退出按钮等。
-// 多时机检测：模块加载时 + DOMContentLoaded + 短延迟兜底，确保捕获异步注入的 Telegram 对象。
+// 检测 Telegram Mini App 环境：
+// 1. 添加 .tg 类名到 <html>（供 CSS 使用）
+// 2. 设置响应式 isTelegramMiniApp（供模板 v-if 使用）
 function detectTelegramWebApp() {
   if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
     document.documentElement.classList.add('tg')
+    isTelegramMiniApp.value = true
     return true
   }
   return false
@@ -216,6 +220,7 @@ if (typeof window !== 'undefined') {
   document.addEventListener('DOMContentLoaded', detectTelegramWebApp)
   // 额外延迟兜底（应对脚本注入延迟）
   setTimeout(detectTelegramWebApp, 300)
+  setTimeout(detectTelegramWebApp, 1000)
 }
 
 const t = i18n.t
