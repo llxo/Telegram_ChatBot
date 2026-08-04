@@ -7,8 +7,6 @@
   "app.themeLight": "淺色",
   "app.themeDark": "深色",
   "app.themeSystem": "跟隨系統",
-  "app.enableGlass": "開啟液態玻璃",
-  "app.disableGlass": "關閉液態玻璃",
   "app.logout": "登出",
   "app.logoutLogin": "登出",
   "app.close": "關閉",

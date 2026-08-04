@@ -621,39 +621,17 @@ onMounted(async () => {
   border-radius:16px;
   box-shadow:var(--shadow);
 }
-:global(:root.glass) .conv-page{
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,.02)),
-    var(--glass-bg);
-  border-color:var(--glass-border);
-  box-shadow:var(--glass-shadow);
-  -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(160%);
-  backdrop-filter:blur(var(--glass-blur)) saturate(160%);
-  isolation:isolate;
-}
 @media(max-width:768px){
   .conv-page{height:calc(100vh - 56px - 16px);min-height:0;border-radius:12px}
   .mobile-hidden{display:none!important}
 }
 .conv-left{width:300px;min-width:300px;border-right:1px solid var(--border);display:flex;flex-direction:column;background:color-mix(in srgb,var(--bg2) 96%, var(--bg3))}
-:global(:root.glass) .conv-left{
-  background:rgba(255,255,255,.03);
-  border-right-color:rgba(255,255,255,.08);
-}
-:global(:root.light.glass) .conv-left{
-  background:rgba(255,255,255,.28);
-  border-right-color:rgba(148,163,184,.22);
-}
 @media(max-width:768px){.conv-left{width:100%;min-width:0}}
 .left-search{padding:10px;border-bottom:1px solid var(--border)}
-:global(:root.glass) .left-search{border-bottom-color:rgba(255,255,255,.08)}
 .left-search input{font-size:13px}
 .left-list{flex:1;overflow-y:auto}
 .left-item{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;transition:var(--tr);border-bottom:1px solid var(--border)}
-:global(:root.glass) .left-item{border-bottom-color:rgba(255,255,255,.05)}
 .left-item:hover{background:var(--bg3);padding-left:16px}.left-item.active{background:var(--accent-dim)}
-:global(:root.glass) .left-item:hover{background:rgba(255,255,255,.06)}
-:global(:root.light.glass) .left-item:hover{background:rgba(15,23,42,.04)}
 .item-ava{width:38px;height:38px;border-radius:50%;flex-shrink:0;background:var(--bg3);color:var(--text2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;overflow:hidden}
 .item-ava.blocked{background:rgba(247,79,79,.15);color:var(--danger)}
 .ava-img{width:100%;height:100%;object-fit:cover}
@@ -664,17 +642,8 @@ onMounted(async () => {
 .item-sep{color:var(--text3);flex-shrink:0}
 .item-time{font-size:11px;color:var(--text3);flex-shrink:0}
 .conv-right{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--bg)}
-:global(:root.glass) .conv-right{background:transparent}
 @media(max-width:768px){.conv-right{width:100%}}
 .right-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--bg2);flex-shrink:0}
-:global(:root.glass) .right-header{
-  background:rgba(255,255,255,.04);
-  border-bottom-color:rgba(255,255,255,.08);
-}
-:global(:root.light.glass) .right-header{
-  background:rgba(255,255,255,.35);
-  border-bottom-color:rgba(148,163,184,.22);
-}
 .hdr-ava{width:38px;height:38px;border-radius:50%;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;overflow:hidden}
 .hdr-name{font-weight:600;font-size:14px;line-height:1.3}
 .hdr-meta{
@@ -691,14 +660,6 @@ onMounted(async () => {
 .msg-wrap.outgoing{justify-content:flex-end}
 .msg-bubble{max-width:min(82%,100%);padding:9px 13px;border-radius:14px;font-size:13px;word-break:break-word;overflow-wrap:anywhere}
 .incoming .msg-bubble{background:var(--bg3);border-bottom-left-radius:4px;transition:var(--tr)}
-:global(:root.glass) .incoming .msg-bubble{
-  background:rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.08);
-}
-:global(:root.light.glass) .incoming .msg-bubble{
-  background:rgba(255,255,255,.72);
-  border:1px solid rgba(148,163,184,.22);
-}
 .incoming .msg-bubble:hover{background:color-mix(in srgb,var(--bg3),var(--accent) 6%)}
 .outgoing .msg-bubble{background:var(--accent-dim);border:1px solid rgba(79,142,247,.25);border-bottom-right-radius:4px;transition:var(--tr)}
 .outgoing .msg-bubble:hover{background:color-mix(in srgb,var(--accent-dim),var(--accent) 8%)}
@@ -720,8 +681,6 @@ onMounted(async () => {
 .composer{
   flex-shrink:0;border-top:1px solid var(--border);background:var(--bg2);padding:10px 12px;display:flex;flex-direction:column;gap:8px;
 }
-:global(:root.glass) .composer{background:rgba(255,255,255,.04);border-top-color:rgba(255,255,255,.08)}
-:global(:root.light.glass) .composer{background:rgba(255,255,255,.35);border-top-color:rgba(148,163,184,.22)}
 .composer-row{display:flex;align-items:center;gap:8px;min-height:40px}
 .composer-input{
   flex:1;min-width:0;resize:none;height:40px;min-height:40px;max-height:120px;padding:0 12px;

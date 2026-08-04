@@ -14,12 +14,6 @@ html,body,#app{background:var(--bg)}
   --text:#fafafa;--text2:#a1a1aa;--text3:#71717a;
   --r:14px;--rs:10px;--shadow:0 10px 30px rgba(0,0,0,.35);--tr:all .2s cubic-bezier(.4,0,.2,1);
   --sidebar-w:240px;
-  --glass-bg:rgba(16,18,26,.72);
-  --glass-bg-soft:rgba(22,25,34,.62);
-  --glass-border:rgba(255,255,255,.12);
-  --glass-shadow:0 16px 40px rgba(0,0,0,.36);
-  --glass-highlight:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.02));
-  --glass-blur:18px;
   --ease-out:cubic-bezier(0,0,.2,1);
   --ease-in-out:cubic-bezier(.4,0,.2,1);
   --stagger-delay:0.04s;
@@ -34,19 +28,7 @@ html,body,#app{background:var(--bg)}
   --danger:#dc2626;--danger-h:#b91c1c;--success:#16a34a;--warn:#ea580c;
   --text:#09090b;--text2:#52525b;--text3:#71717a;
   --shadow:0 10px 24px rgba(15,23,42,.08);
-  --glass-bg:rgba(255,255,255,.68);
-  --glass-bg-soft:rgba(255,255,255,.58);
-  --glass-border:rgba(148,163,184,.28);
-  --glass-shadow:0 16px 36px rgba(15,23,42,.12);
-  --glass-highlight:linear-gradient(180deg, rgba(255,255,255,.75), rgba(255,255,255,.2));
-  --glass-blur:18px;
   color-scheme:light;
-}
-:root.light.glass{
-  --glass-bg:rgba(255,255,255,.74);
-  --glass-bg-soft:rgba(255,255,255,.64);
-  --glass-border:rgba(148,163,184,.32);
-  --glass-shadow:0 18px 40px rgba(15,23,42,.14);
 }
 :root.light .nav-section{color:var(--text3)}
 
@@ -85,49 +67,12 @@ body::before{
     radial-gradient(ellipse 60% 50% at 100% 0%, rgba(14,165,233,.05), transparent);
 }
 
-/* 玻璃模式下增强背景层次，避免 backdrop 模糊后发灰/发糊 */
-:root.glass body::before{
-  opacity:.55;
-  background:
-    radial-gradient(ellipse 90% 70% at 8% -10%, rgba(79,142,247,.18), transparent 55%),
-    radial-gradient(ellipse 70% 55% at 96% 8%, rgba(99,102,241,.14), transparent 50%),
-    radial-gradient(ellipse 55% 45% at 50% 100%, rgba(56,189,248,.08), transparent 60%);
-}
-:root.light.glass body::before{
-  opacity:.7;
-  background:
-    radial-gradient(ellipse 90% 70% at 8% -10%, rgba(37,99,235,.12), transparent 55%),
-    radial-gradient(ellipse 70% 55% at 96% 8%, rgba(99,102,241,.1), transparent 50%),
-    radial-gradient(ellipse 55% 45% at 50% 100%, rgba(14,165,233,.08), transparent 60%);
-}
-
 /* ── Form controls ───────────────────────────────────────────────────────── */
 /* 排除 checkbox/radio：原生控件不能套文本框的边框/内阴影，否则线条会发糊 */
 input:not([type="checkbox"]):not([type="radio"]),select,textarea{
   background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);
   color:var(--text);font-size:14px;padding:9px 12px;width:100%;outline:none;
   transition:var(--tr);font-family:inherit;
-}
-/* 玻璃表单：只做半透明高光，避免与卡片双重 backdrop-filter 叠糊 */
-:root.glass input:not([type="checkbox"]):not([type="radio"]),
-:root.glass select,
-:root.glass textarea{
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,.03)),
-    rgba(255,255,255,.06);
-  border-color:rgba(255,255,255,.14);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.1);
-  -webkit-backdrop-filter:none;
-  backdrop-filter:none;
-}
-:root.light.glass input:not([type="checkbox"]):not([type="radio"]),
-:root.light.glass select,
-:root.light.glass textarea{
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.88), rgba(255,255,255,.55)),
-    rgba(255,255,255,.45);
-  border-color:rgba(148,163,184,.36);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.9);
 }
 input:not([type="checkbox"]):not([type="radio"]):focus,select:focus,textarea:focus{
   border-color:var(--accent);
@@ -136,7 +81,7 @@ input:not([type="checkbox"]):not([type="radio"]):focus,select:focus,textarea:foc
 input::placeholder,textarea::placeholder{color:var(--text3)}
 select option{background:var(--bg2)}
 
-/* 原生 checkbox：保持清晰，避免被玻璃/卡片滤镜糊边 */
+/* 原生 checkbox：保持清晰，避免被卡片滤镜糊边 */
 input[type="checkbox"]{
   appearance:auto;
   -webkit-appearance:auto;
@@ -155,15 +100,6 @@ input[type="checkbox"]{
   transform:translateZ(0);
   backface-visibility:hidden;
   image-rendering:auto;
-}
-:root.glass input[type="checkbox"],
-:root.light.glass input[type="checkbox"]{
-  background:transparent !important;
-  border:none !important;
-  box-shadow:none !important;
-  -webkit-backdrop-filter:none !important;
-  backdrop-filter:none !important;
-  filter:none;
 }
 
 /* ── Buttons ─────────────────────────────────────────────────────────────── */
@@ -196,35 +132,6 @@ button:active{transform:scale(.97)}
 }
 .btn-ghost:hover{background:var(--bg3);color:var(--text);border-color:var(--text3)}
 .btn-ghost:disabled{opacity:.5;cursor:not-allowed}
-:root.glass .btn-ghost{
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,.03)),
-    rgba(255,255,255,.06);
-  color:var(--text);
-  border-color:rgba(255,255,255,.14);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
-  -webkit-backdrop-filter:none;
-  backdrop-filter:none;
-}
-:root.glass .btn-ghost:hover{
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.05)),
-    rgba(255,255,255,.1);
-  border-color:rgba(255,255,255,.2);
-}
-:root.light.glass .btn-ghost{
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.55)),
-    rgba(255,255,255,.4);
-  border-color:rgba(148,163,184,.34);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.9);
-}
-:root.light.glass .btn-ghost:hover{
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.7)),
-    rgba(255,255,255,.55);
-  border-color:rgba(100,116,139,.4);
-}
 .btn-sm{padding:5px 12px;font-size:12px}
 .btn-icon{
   background:transparent;border:none;color:var(--text2);padding:6px;
@@ -265,19 +172,6 @@ button:active{transform:scale(.97)}
   from{opacity:0;transform:translateY(6px) scale(.96)}
   to{opacity:1;transform:translateY(0) scale(1)}
 }
-:root.glass .theme-menu{
-  background:
-    var(--glass-highlight),
-    var(--glass-bg);
-  border-color:var(--glass-border);
-  -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(160%);
-  backdrop-filter:blur(var(--glass-blur)) saturate(160%);
-  box-shadow:var(--glass-shadow);
-  isolation:isolate;
-}
-:root.light.glass .theme-menu{
-  border-color:rgba(148,163,184,.3);
-}
 .theme-menu-item{
   width:100%;
   display:flex;
@@ -313,82 +207,6 @@ button:active{transform:scale(.97)}
   text-align:right;
   font-weight:700;
 }
-.glass-toggle-btn{
-  width:34px;
-  height:34px;
-  justify-content:center;
-  border:1px solid transparent;
-  border-radius:10px;
-}
-.glass-toggle-btn:hover{
-  background:var(--bg3);
-  border-color:var(--border);
-}
-.glass-toggle-btn.active{
-  background:var(--accent-dim);
-  border-color:rgba(79,142,247,.28);
-}
-.glass-toggle-icon{
-  position:relative;
-  width:18px;
-  height:14px;
-  display:inline-block;
-  border-radius:6px;
-  background:
-    linear-gradient(135deg, rgba(255,255,255,.22), rgba(125,211,252,.08) 45%, rgba(79,142,247,.18));
-  border:1px solid rgba(255,255,255,.28);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.35),
-    0 2px 8px rgba(79,142,247,.12);
-  overflow:hidden;
-}
-.glass-toggle-icon::before{
-  content:'';
-  position:absolute;
-  inset:2px;
-  border-radius:4px;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.28), transparent 55%),
-    linear-gradient(120deg, transparent 30%, rgba(255,255,255,.18), transparent 70%);
-  opacity:.85;
-}
-.glass-toggle-icon::after{
-  content:'';
-  position:absolute;
-  top:2px;
-  left:3px;
-  width:6px;
-  height:4px;
-  border-radius:50%;
-  background:rgba(255,255,255,.55);
-  filter:blur(.3px);
-}
-.glass-toggle-icon.active{
-  background:
-    linear-gradient(135deg, rgba(191,219,254,.55), rgba(96,165,250,.28) 50%, rgba(79,142,247,.42));
-  border-color:rgba(125,211,252,.65);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.55),
-    0 0 0 1px rgba(79,142,247,.18),
-    0 4px 14px rgba(79,142,247,.28);
-}
-:root.light .glass-toggle-icon{
-  background:
-    linear-gradient(135deg, rgba(255,255,255,.95), rgba(191,219,254,.45) 50%, rgba(147,197,253,.35));
-  border-color:rgba(148,163,184,.4);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.95),
-    0 2px 8px rgba(37,99,235,.1);
-}
-:root.light .glass-toggle-icon.active{
-  background:
-    linear-gradient(135deg, rgba(255,255,255,.98), rgba(147,197,253,.55) 45%, rgba(59,130,246,.35));
-  border-color:rgba(59,130,246,.45);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.95),
-    0 0 0 1px rgba(37,99,235,.12),
-    0 4px 14px rgba(37,99,235,.18);
-}
 
 /* ── Cards ───────────────────────────────────────────────────────────────── */
 .card{
@@ -404,66 +222,6 @@ button:active{transform:scale(.97)}
 }
 .card:hover{
   border-color:rgba(255,255,255,.06);
-}
-/* 毛玻璃放到伪元素层：避免祖先 backdrop-filter 让内部 checkbox/文字描边发糊 */
-:root.glass .card{
-  background:transparent;
-  border-color:var(--glass-border);
-  box-shadow:var(--glass-shadow);
-  isolation:isolate;
-  overflow:hidden;
-}
-:root.glass .card::before{
-  content:'';
-  position:absolute;
-  inset:0;
-  z-index:0;
-  border-radius:inherit;
-  pointer-events:none;
-  background:
-    var(--glass-highlight),
-    var(--glass-bg);
-  -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(160%);
-  backdrop-filter:blur(var(--glass-blur)) saturate(160%);
-}
-:root.glass .card > *{
-  position:relative;
-  z-index:1;
-}
-:root.light.glass .card{
-  border-color:rgba(148,163,184,.28);
-}
-:root.light.glass .card::before{
-  background:
-    var(--glass-highlight),
-    var(--glass-bg);
-}
-/* 卡片内表格/代码块在玻璃模式下避免实心底色盖住毛玻璃 */
-:root.glass .table tr:hover td{
-  background:rgba(255,255,255,.05);
-}
-:root.light.glass .table tr:hover td{
-  background:rgba(15,23,42,.04);
-}
-:root.glass .table th,
-:root.glass .table td{
-  border-bottom-color:rgba(255,255,255,.06);
-}
-:root.light.glass .table th,
-:root.light.glass .table td{
-  border-bottom-color:rgba(15,23,42,.06);
-}
-:root.glass pre,
-:root.glass code{
-  background:rgba(255,255,255,.06);
-}
-:root.light.glass pre,
-:root.light.glass code{
-  background:rgba(15,23,42,.04);
-}
-:root.glass .alert{
-  -webkit-backdrop-filter:none;
-  backdrop-filter:none;
 }
 :root.light .card{
   background:
@@ -582,10 +340,6 @@ button:active{transform:scale(.97)}
 }
 .empty-state-title{font-size:14px;font-weight:600;color:var(--text2)}
 .empty-state-desc{font-size:12px;color:var(--text3);max-width:280px;line-height:1.5}
-:root.glass .empty-state-icon{
-  background:rgba(79,142,247,.14);
-  box-shadow:0 0 0 1px rgba(79,142,247,.18);
-}
 
 /* ── Skeleton blocks ─────────────────────────────────────────────────────── */
 .skeleton-line{height:12px;width:100%}
@@ -618,14 +372,9 @@ button:active{transform:scale(.97)}
   box-shadow:0 0 0 1px rgba(79,142,247,.12);
   transition:transform .25s var(--ease-out),box-shadow .2s var(--ease-out);
 }
-:root.glass .stat-icon-wrap{
-  background:rgba(79,142,247,.14);
-  box-shadow:0 0 0 1px rgba(79,142,247,.18);
-}
 
 /* ── App root + Top navigation ───────────────────────────────────────────── */
 .app-root{display:flex;flex-direction:column;height:100vh;overflow:hidden;position:relative;background:var(--bg)}
-:root.glass .app-root{background:transparent}
 .topbar{
   position:sticky;top:0;z-index:200;
   backface-visibility:hidden;
@@ -636,25 +385,10 @@ button:active{transform:scale(.97)}
   -webkit-backdrop-filter:blur(16px) saturate(140%);
   backdrop-filter:blur(16px) saturate(140%);
 }
-:root.glass .topbar{
-  background:
-    var(--glass-highlight),
-    var(--glass-bg);
-  border-bottom-color:var(--glass-border);
-  box-shadow:0 8px 24px rgba(0,0,0,.16);
-  -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(160%);
-  backdrop-filter:blur(var(--glass-blur)) saturate(160%);
-  isolation:isolate;
-}
 :root.light .topbar{
   background:
     linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.88)),
     color-mix(in srgb, var(--bg2) 94%, transparent);
-}
-:root.light.glass .topbar{
-  background:
-    var(--glass-highlight),
-    var(--glass-bg);
 }
 .topbar-inner{
   max-width:1200px;margin:0 auto;padding:0 18px;height:60px;
@@ -700,49 +434,10 @@ a.user-chip:hover{
   color:var(--text);
 }
 a.user-chip:hover .user-name{color:var(--text)}
-:root.glass .user-chip{
-  background:
-    linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.03)),
-    rgba(255,255,255,.06);
-  border-color:var(--glass-border);
-  -webkit-backdrop-filter:none;
-  backdrop-filter:none;
-}
-:root.light.glass .user-chip{
-  background:
-    linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,.55)),
-    rgba(255,255,255,.4);
-}
-:root.glass a.user-chip:hover{
-  background:rgba(79,142,247,.14);
-  border-color:rgba(79,142,247,.3);
-}
 .logout-btn{color:var(--danger)!important}
 .logout-btn:hover{background:rgba(247,79,79,.12)!important;color:var(--danger-h)!important}
 /* Telegram Mini App 环境强制隐藏退出按钮 */
 :root.tg .logout-btn{display:none!important}
-:root.glass .lang-select{
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,.03)),
-    rgba(255,255,255,.06);
-  border-color:rgba(255,255,255,.14);
-  -webkit-backdrop-filter:none;
-  backdrop-filter:none;
-}
-:root.light.glass .lang-select{
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.55)),
-    rgba(255,255,255,.4);
-  border-color:rgba(148,163,184,.34);
-}
-:root.glass .top-link:hover,
-:root.glass .mobile-nav-link:hover{
-  background:rgba(255,255,255,.06);
-}
-:root.light.glass .top-link:hover,
-:root.light.glass .mobile-nav-link:hover{
-  background:rgba(15,23,42,.04);
-}
 .user-ava{width:28px;height:28px;border-radius:50%;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
 .user-name{font-size:13px;color:var(--text2);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mobile-nav{
@@ -778,24 +473,6 @@ a.user-chip:hover .user-name{color:var(--text)}
   from{opacity:0;transform:translateY(-4px)}
   to{opacity:1;transform:translateY(0)}
 }
-:root.glass .id-dropdown{
-  background:
-    var(--glass-highlight),
-    var(--glass-bg);
-  border-color:var(--glass-border);
-  -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(160%);
-  backdrop-filter:blur(var(--glass-blur)) saturate(160%);
-  isolation:isolate;
-}
-:root.light.glass .id-dropdown{
-  border-color:rgba(148,163,184,.3);
-}
-:root.glass .id-dropdown-item:hover{
-  background:rgba(255,255,255,.06);
-}
-:root.light.glass .id-dropdown-item:hover{
-  background:rgba(15,23,42,.04);
-}
 .id-dropdown-item{padding:9px 12px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);transition:background .12s}
 .id-dropdown-item:last-child{border-bottom:none}.id-dropdown-item:hover{background:var(--bg3)}
 .item-id{font-size:11px;color:var(--text3);margin-left:auto;font-family:monospace}
@@ -830,14 +507,6 @@ a.user-chip:hover .user-name{color:var(--text)}
 .modal-card{
   width:100%;max-width:440px;padding:24px;max-height:90vh;overflow-y:auto;
   animation:modalScaleIn .25s var(--ease-out);
-}
-:root.glass .modal-overlay{
-  background:rgba(0,0,0,.42);
-  -webkit-backdrop-filter:blur(10px) saturate(140%);
-  backdrop-filter:blur(10px) saturate(140%);
-}
-:root.light.glass .modal-overlay{
-  background:rgba(15,23,42,.28);
 }
 @keyframes modalScaleIn{
   from{opacity:0;transform:scale(.94) translateY(8px)}

@@ -284,8 +284,6 @@ onMounted(load)
 .config-row{display:flex;align-items:center;justify-content:space-between}
 .conv-row{display:flex;align-items:center;gap:12px;padding:9px;border-radius:var(--rs);text-decoration:none;color:inherit;transition:var(--tr)}
 .conv-row:hover{background:var(--bg3);padding-left:14px}
-:global(:root.glass) .conv-row:hover{background:rgba(255,255,255,.06)}
-:global(:root.light.glass) .conv-row:hover{background:rgba(15,23,42,.04)}
 .conv-ava{width:36px;height:36px;border-radius:50%;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;overflow:hidden}
 .ava-img{width:100%;height:100%;object-fit:cover}
 .conv-body{flex:1;min-width:0}

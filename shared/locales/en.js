@@ -7,8 +7,6 @@
   "app.themeLight": "Light",
   "app.themeDark": "Dark",
   "app.themeSystem": "System",
-  "app.enableGlass": "Enable Liquid Glass",
-  "app.disableGlass": "Disable Liquid Glass",
   "app.logout": "Logout",
   "app.logoutLogin": "Logout",
   "app.close": "Close",

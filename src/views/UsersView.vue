@@ -789,12 +789,7 @@ onMounted(() => {
   z-index:1;
 }
 .row-sel td{background:rgba(79,142,247,.07)!important}
-:global(:root.glass) .row-sel td{background:rgba(79,142,247,.12)!important}
 .batch-bar{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--accent-dim);border:1px solid rgba(79,142,247,.3);border-radius:var(--rs);flex-wrap:wrap}
-:global(:root.glass) .batch-bar{
-  background:linear-gradient(180deg, rgba(79,142,247,.18), rgba(79,142,247,.08));
-  border-color:rgba(79,142,247,.35);
-}
 .batch-actions{align-items:center}
 .batch-actions button{white-space:nowrap}
 .compact-users-table th,

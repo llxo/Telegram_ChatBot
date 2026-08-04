@@ -66,13 +66,6 @@ function iconOf(type) {
   backdrop-filter:blur(14px) saturate(140%);
   -webkit-backdrop-filter:blur(14px) saturate(140%);
 }
-:global(:root.glass) .toast-item{
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.04)),
-    var(--glass-bg);
-  border-color:var(--glass-border);
-  box-shadow:var(--glass-shadow);
-}
 .toast-success{border-color:rgba(79,190,124,.35)}
 .toast-error{border-color:rgba(247,79,79,.35)}
 .toast-warn{border-color:rgba(247,164,79,.35)}

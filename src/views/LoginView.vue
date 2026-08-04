@@ -24,9 +24,6 @@
             </button>
           </div>
         </div>
-        <button class="btn-icon glass-toggle-btn login-glass-btn" type="button" @click="toggleGlass" :title="glassEnabled ? t('app.disableGlass') : t('app.enableGlass')">
-          <span class="glass-toggle-icon" :class="{ active: glassEnabled }" aria-hidden="true"></span>
-        </button>
       </div>
 
       <div class="login-logo">
@@ -113,7 +110,6 @@ const needTotp = ref(false)
 const isDark = ref(true)
 const themeMode = ref('system')
 const themeMenuOpen = ref(false)
-const glassEnabled = ref(false)
 
 let systemThemeQuery = null
 
@@ -176,16 +172,6 @@ function handleSystemThemeChange() {
   const resolved = resolveThemeMode('system')
   applyResolvedTheme(resolved)
   localStorage.setItem('theme', resolved)
-}
-
-function applyGlass(enabled) {
-  glassEnabled.value = !!enabled
-  document.documentElement.classList.toggle('glass', glassEnabled.value)
-  localStorage.setItem('visual_glass', glassEnabled.value ? 'true' : 'false')
-}
-
-function toggleGlass() {
-  applyGlass(!glassEnabled.value)
 }
 
 async function loadAuthStatus() {
@@ -254,8 +240,6 @@ onMounted(() => {
     applyTheme('system')
   }
 
-  applyGlass(localStorage.getItem('visual_glass') === 'true')
-
   if (window.matchMedia) {
     systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)')
     if (systemThemeQuery.addEventListener) systemThemeQuery.addEventListener('change', handleSystemThemeChange)
@@ -288,29 +272,13 @@ onBeforeUnmount(() => {
     radial-gradient(ellipse 50% 40% at 20% 80%, rgba(99,102,241,.06), transparent),
     radial-gradient(ellipse 40% 30% at 85% 70%, rgba(14,165,233,.04), transparent);
 }
-:global(:root.glass) .login-wrap{
-  background:transparent;
-}
-:global(:root.glass) .login-wrap::before{
-  opacity:.9;
-  background:
-    radial-gradient(ellipse 90% 55% at 50% -5%, rgba(79,142,247,.22), transparent 55%),
-    radial-gradient(ellipse 55% 45% at 15% 85%, rgba(99,102,241,.16), transparent 55%),
-    radial-gradient(ellipse 45% 35% at 90% 70%, rgba(56,189,248,.12), transparent 55%);
-}
-:global(:root.light.glass) .login-wrap::before{
-  background:
-    radial-gradient(ellipse 90% 55% at 50% -5%, rgba(37,99,235,.14), transparent 55%),
-    radial-gradient(ellipse 55% 45% at 15% 85%, rgba(99,102,241,.1), transparent 55%),
-    radial-gradient(ellipse 45% 35% at 90% 70%, rgba(14,165,233,.1), transparent 55%);
-}
 .login-card{width:100%;max-width:380px;padding:20px 28px 36px;animation:loginIn .4s var(--ease-out);position:relative;z-index:1}
 @keyframes loginIn{
   from{opacity:0;transform:translateY(20px) scale(.97)}
   to{opacity:1;transform:translateY(0) scale(1)}
 }
 .login-topbar{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-bottom:12px}
-.login-theme-wrap,.login-glass-btn{flex-shrink:0}
+.login-theme-wrap{flex-shrink:0}
 .login-logo{display:flex;align-items:center;justify-content:center;margin-bottom:12px;animation:logoFloat 4s var(--ease-in-out) infinite}
 @keyframes logoFloat{
   0%,100%{transform:translateY(0)}

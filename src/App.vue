@@ -52,15 +52,6 @@
             </div>
           </div>
 
-          <button
-            class="btn-icon glass-toggle-btn"
-            :class="{ active: glassEnabled }"
-            @click="toggleGlass"
-            :title="glassEnabled ? t('app.disableGlass') : t('app.enableGlass')"
-          >
-            <span class="glass-toggle-icon" :class="{ active: glassEnabled }" aria-hidden="true"></span>
-          </button>
-
           <RouterLink to="/profile" class="user-chip" :title="t('nav.profile')">
             <div class="user-ava">{{ auth.username?.[0]?.toUpperCase() || 'U' }}</div>
             <span class="user-name hide-mobile">{{ auth.username }}</span>
@@ -158,14 +149,6 @@
           </button>
         </div>
       </div>
-      <button
-        class="btn-icon glass-toggle-btn"
-        :class="{ active: glassEnabled }"
-        @click="toggleGlass"
-        :title="glassEnabled ? t('app.disableGlass') : t('app.enableGlass')"
-      >
-        <span class="glass-toggle-icon" :class="{ active: glassEnabled }" aria-hidden="true"></span>
-      </button>
     </div>
     <RouterView />
     </div>
@@ -194,7 +177,6 @@ const router = useRouter()
 const route = useRoute()
 const navOpen = ref(false)
 const isDark = ref(true)
-const glassEnabled = ref(false)
 const routeReady = ref(false)
 const themeMode = ref('system')
 const themeMenuOpen = ref(false)
@@ -354,16 +336,6 @@ function handleSystemThemeChange() {
   localStorage.setItem('theme', resolved)
 }
 
-function applyGlass(enabled) {
-  glassEnabled.value = !!enabled
-  document.documentElement.classList.toggle('glass', glassEnabled.value)
-  localStorage.setItem('visual_glass', glassEnabled.value ? 'true' : 'false')
-}
-
-function toggleGlass() {
-  applyGlass(!glassEnabled.value)
-}
-
 async function handleAuthExpired() {
   await auth.logout({ skipRequest: true, keepNotice: true })
   // 仅在非登录/注册页触发时做跳转；避开与 beforeEach 守卫的并行导航竞态
@@ -398,7 +370,6 @@ onMounted(async () => {
     applyTheme('system')
   }
 
-  applyGlass(localStorage.getItem('visual_glass') === 'true')
   i18n.setLocale(i18n.locale)
   document.title = t('app.title')
 
