@@ -204,6 +204,12 @@ const isTelegramMiniApp = ref(false)
 // 1. 路径为 /miniapp/
 // 2. URL 含 tgWebAppData 参数（Telegram 注入）
 // 3. window.Telegram?.WebApp 对象存在
+//
+// 使用 sessionStorage 持久化检测结果，避免重载页面时：
+// - isTelegramMiniApp 从 false 重新开始
+// - 三种检测方式在刷新瞬间都暂时不可用导致退出按钮闪烁/重现
+const TG_MINI_APP_FLAG_KEY = 'tg_mini_app_detected'
+
 function detectTelegramWebApp() {
   if (typeof window === 'undefined') return false
 
@@ -215,6 +221,7 @@ function detectTelegramWebApp() {
   if (isMiniAppPath || hasTgParam || hasTgObj) {
     document.documentElement.classList.add('tg')
     isTelegramMiniApp.value = true
+    try { sessionStorage.setItem(TG_MINI_APP_FLAG_KEY, '1') } catch { /* sessionStorage 不可用时静默跳过 */ }
     return true
   }
   return false
@@ -225,6 +232,15 @@ detectTelegramWebApp()
 
 // 兜底：多时机重复检测
 if (typeof window !== 'undefined') {
+  // 刷新页面时，若 sessionStorage 已标记为 Mini App，立即恢复状态，
+  // 避免等待 DOMContentLoaded / setTimeout 期间退出按钮短暂出现。
+  try {
+    if (!isTelegramMiniApp.value && sessionStorage.getItem(TG_MINI_APP_FLAG_KEY) === '1') {
+      document.documentElement.classList.add('tg')
+      isTelegramMiniApp.value = true
+    }
+  } catch { /* sessionStorage 不可用时静默跳过 */ }
+
   document.addEventListener('DOMContentLoaded', detectTelegramWebApp)
   setTimeout(detectTelegramWebApp, 200)
   setTimeout(detectTelegramWebApp, 500)
