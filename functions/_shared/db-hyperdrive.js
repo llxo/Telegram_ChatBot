@@ -448,6 +448,7 @@ export class HyperdriveStore {
       'INSERT INTO whitelist(user_id,reason,added_by,created_at) VALUES($1,$2,$3,$4) ON CONFLICT(user_id) DO UPDATE SET reason=EXCLUDED.reason,added_by=EXCLUDED.added_by,created_at=EXCLUDED.created_at',
       [userId, reason, addedBy, new Date().toISOString()],
     )
+    await this.unblockUser(userId)
   }
   async removeFromWhitelist(userId) { await this._execute('DELETE FROM whitelist WHERE user_id=$1', [userId]) }
   async getWhitelist(page = 1, pageSize = 20) {

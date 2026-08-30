@@ -551,9 +551,12 @@ export async function getOrCreateThread(tg, db, user, groupId, kv, t) {
 }
 
 async function sendCard(tg, db, user, groupId, tid, t) {
-  const u    = await db.getUser(user.id);
-  const kb   = fullUserKb(user.id, u, t);
-  const text = buildCardText(user, u, t);
+  const [u, isWl] = await Promise.all([
+    db.getUser(user.id),
+    db.isWhitelisted(user.id),
+  ]);
+  const kb   = fullUserKb(user.id, u, t, isWl);
+  const text = buildCardText(user, u, t, isWl);
 
   const pinCardMessage = async (msgId) => {
     if (!msgId) return;
@@ -578,14 +581,25 @@ async function sendCard(tg, db, user, groupId, tid, t) {
   if (r?.ok) await pinCardMessage(r.result?.message_id);
 }
 
-function buildCardText(user, u, t) {
+function buildCardText(user, u, t, isWl = false) {
+  let statusText = '';
+  if (u?.is_blocked) {
+    statusText = t('status.blocked');
+  } else if (isWl) {
+    statusText = `${t('status.verified')} [${t('panel.whitelist') || '白名单'}]`;
+  } else if (u?.is_verified) {
+    statusText = t('status.verified');
+  } else {
+    statusText = t('status.unverified');
+  }
+
   return `👤 <b>${t('card.userInfo')}</b>\n\n` +
     `${t('card.name')}：${esc(name(user))}\n` +
     `${t('card.username')}：${user.username ? '@' + esc(user.username) : t('list.none')}\n` +
     `${t('card.id')}：<code>${user.id ?? user.user_id}</code>\n` +
     `${t('card.language')}：${user.language_code || t('list.none')}\n` +
     `${t('card.firstContact')}：${fmtUtc8(u?.created_at, t)}\n` +
-    `${t('card.status')}：${u?.is_blocked ? t('status.blocked') : (u?.is_verified ? t('status.verified') : t('status.unverified'))}`;
+    `${t('card.status')}：${statusText}`;
 }
 
 async function sendToUserThreadOrAdminDm({ tg, db, settings, waitUntil, groupId, adminIds, userId, text, kb }) {
@@ -606,14 +620,14 @@ async function sendToUserThreadOrAdminDm({ tg, db, settings, waitUntil, groupId,
 }
 
 // ── 键盘布局 ─────────────────────────────────────────────────────────────────
-function fullUserKb(uid, u, t) {
+function fullUserKb(uid, u, t, isWl = false) {
   return [
     [
       { text: u?.is_blocked ? t('kb.unblock') : t('kb.block'), callback_data: u?.is_blocked ? `ub:${uid}` : `bl:${uid}` },
       { text: u?.is_blocked ? t('kb.permBan') : t('kb.detail'), callback_data: u?.is_blocked ? `pb:${uid}` : `ui:${uid}` },
     ],
     [
-      { text: t('kb.whitelist'), callback_data: `wl:${uid}` },
+      { text: isWl ? `🟢 ${t('panel.whitelist') || '白名单'}` : `⚪ ${t('panel.whitelist') || '白名单'}`, callback_data: `wl:${uid}` },
       { text: t('kb.msgHistory'), callback_data: `ml:${uid}:1` },
     ],
     [
@@ -703,9 +717,10 @@ function buildUserHomeText(settings, t) {
   return `${welcomeText}\n\n${t('user.menuHint')}`;
 }
 
-function buildUserStatusText(u, t) {
+function buildUserStatusText(u, t, isWl = false) {
+  const verifiedText = isWl ? `${t('user.statusVerified')} [${t('panel.whitelist') || '白名单'}]` : (u?.is_verified ? t('user.statusVerified') : t('user.statusUnverified'));
   return t('user.status', {
-    verified: u?.is_verified ? t('user.statusVerified') : t('user.statusUnverified'),
+    verified: verifiedText,
     blocked: u?.is_blocked ? t('user.statusBlocked') : t('user.statusNotBlocked'),
   });
 }
@@ -872,13 +887,16 @@ async function handleMsg(msg, { tg, db, kv, settings, baseUrl, t, waitUntil }) {
       return;
     }
     if (cmd === 'status') {
-      const u = await db.getUser(user.id);
+      const [u, isWl] = await Promise.all([
+        db.getUser(user.id),
+        db.isWhitelisted(user.id),
+      ]);
       await sendUserMsg({
         tg,
         settings,
         waitUntil,
         chatId: user.id,
-        text: buildUserStatusText(u, t),
+        text: buildUserStatusText(u, t, isWl),
         kb: [userMenuNavRow(t)],
       });
       return;
@@ -886,9 +904,12 @@ async function handleMsg(msg, { tg, db, kv, settings, baseUrl, t, waitUntil }) {
     if (settings.BOT_COMMAND_FILTER === 'true') return; // swallow unknown commands
   }
 
-  // ── 封禁检查 ─────────────────────────────────────────────────────────────
+  // ── 白名单检查（特权用户豁免封禁、关键词过滤与人机验证）───────────────────────
+  const whitelisted = await db.isWhitelisted(user.id);
+
+  // ── 封禁检查（非白名单用户）───────────────────────────────────────────────
   const dbUser = await db.getUser(user.id);
-  if (dbUser?.is_blocked) {
+  if (!whitelisted && dbUser?.is_blocked) {
     const isPermanentBlock = Boolean(dbUser.is_permanent_block);
     const canAppeal = canUserAppeal(dbUser, settings);
     const pendingAppeal = await kv.get(`pending_appeal:${user.id}`);
@@ -945,9 +966,6 @@ async function handleMsg(msg, { tg, db, kv, settings, baseUrl, t, waitUntil }) {
     }
     return;
   }
-
-  // ── 白名单检查（特权用户豁免关键词过滤与人机验证）─────────────────────────────
-  const whitelisted = settings.WHITELIST_ENABLED === 'true' && await db.isWhitelisted(user.id);
 
   if (!whitelisted) {
     // 仅对非白名单用户进行关键词屏蔽与自动封禁
@@ -1424,14 +1442,17 @@ async function handleCb(q, { tg, db, kv, settings, t, waitUntil }) {
       return;
     }
     if (data === 'user:status') {
-      const u = await db.getUser(user.id);
+      const [u, isWl] = await Promise.all([
+        db.getUser(user.id),
+        db.isWhitelisted(user.id),
+      ]);
       await editUserText({
         tg,
         settings,
         waitUntil,
         chatId,
         msgId,
-        text: buildUserStatusText(u, t),
+        text: buildUserStatusText(u, t, isWl),
         kb: [userMenuNavRow(t)],
       });
       await tg.answerCb({ id: q.id });
@@ -1559,7 +1580,7 @@ async function handleCb(q, { tg, db, kv, settings, t, waitUntil }) {
         await db.removeFromWhitelist(uid);
         await tg.answerCb({ id: q.id, text: t('cb.wlRemoved') });
       } else {
-        await db.addToWhitelist(uid, t('admin.reason.manualWhitelist'), String(user.id));
+        await db.addToWhitelist(uid, 'manual', String(user.id));
         await tg.answerCb({ id: q.id, text: t('cb.wlAdded') });
       }
       await refreshCard(tg, db, chatId, msgId, uid, message, t);
@@ -1570,7 +1591,7 @@ async function handleCb(q, { tg, db, kv, settings, t, waitUntil }) {
       const u   = await db.getUser(uid);
       if (!u) { await tg.answerCb({ id: q.id, text: t('admin.userNotFound') }); return; }
       const isWl = await db.isWhitelisted(uid);
-      await editCard(tg, chatId, msgId, message, buildDetailText(u, isWl, t), [...fullUserKb(uid, u, t), [{ text: t('collapse'), callback_data: `rf:${uid}` }]]);
+      await editCard(tg, chatId, msgId, message, buildDetailText(u, isWl, t), [...fullUserKb(uid, u, t, isWl), [{ text: t('collapse'), callback_data: `rf:${uid}` }]]);
       await tg.answerCb({ id: q.id });
       return;
     }
@@ -2076,7 +2097,7 @@ function buildDetailText(u, isWl = false, t) {
     `${t('card.language')}: ${u.language_code || t('list.none')}\n` +
     `${t('card.status')}: ${u.is_blocked ? (u.is_permanent_block ? '♾️' : '⛔') : '✅'}\n` +
     (u.is_blocked ? `${t('detail.reason')}: ${esc(u.block_reason || t('list.none'))}\n` : '') +
-    `${t('detail.whitelist')}: ${isWl ? '⚪ ' + t('panel.on') : t('panel.off')}\n` +
+    `${t('detail.whitelist')}: ${isWl ? '🟢 ' + t('panel.on') : '⚪ ' + t('panel.off')}\n` +
     `${t('detail.verification')}: ${u.is_verified ? t('status.verified') : t('status.unverified')}\n` +
     `${t('detail.firstContact')}: ${fmtUtc8(u.created_at, t)}`;
 }
@@ -2093,14 +2114,18 @@ async function editCard(tg, chatId, msgId, message, text, kb) {
 }
 
 async function refreshCard(tg, db, chatId, msgId, uid, message, t) {
-  const u  = await db.getUser(uid);
-  const kb = fullUserKb(uid, u, t);
+  const [u, isWl] = await Promise.all([
+    db.getUser(uid),
+    db.isWhitelisted(uid),
+  ]);
+  const kb = fullUserKb(uid, u, t, isWl);
+  const text = buildCardText(u, u, t, isWl);
   if (message.photo || message.video) {
-    await tg.editCaption({ chatId, msgId, caption: buildCardText(u, u, t), kb }).catch(() =>
+    await tg.editCaption({ chatId, msgId, caption: text, kb }).catch(() =>
       tg.editKb({ chatId, msgId, kb })
     );
   } else {
-    await tg.editText({ chatId, msgId, text: buildCardText(u, u, t), kb }).catch(() =>
+    await tg.editText({ chatId, msgId, text, kb }).catch(() =>
       tg.editKb({ chatId, msgId, kb })
     );
   }

@@ -295,6 +295,7 @@ export class KVStore {
     const val = JSON.stringify({ user_id: userId, reason, added_by: addedBy, created_at: new Date().toISOString() })
     await this.kv.put(key, val)
     this._cacheSet(key, val)
+    await this.unblockUser(userId)
     _invalidateListsContaining('whitelist:')
   }
   async removeFromWhitelist(userId) {

@@ -139,6 +139,7 @@ export class D1Store {
   async isWhitelisted(userId) { return !!(await this.first('SELECT 1 FROM whitelist WHERE user_id=?', userId)) }
   async addToWhitelist(userId, reason, addedBy) {
     await this.exec('INSERT OR REPLACE INTO whitelist(user_id,reason,added_by,created_at) VALUES(?,?,?,?)', userId, reason, addedBy, new Date().toISOString())
+    await this.unblockUser(userId)
   }
   async removeFromWhitelist(userId) { await this.exec('DELETE FROM whitelist WHERE user_id=?', userId) }
   async getWhitelist(page = 1, pageSize = 20) {
