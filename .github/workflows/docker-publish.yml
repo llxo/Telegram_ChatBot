@@ -1,17 +1,18 @@
 # Docker Hub 构建与发布工作流
-# 在推送 tag（v*）或 main 分支时自动构建并发布到 Docker Hub
+# 已禁用自动触发，仅保留手动触发 (workflow_dispatch)
 
 name: Docker Build & Publish
 
 on:
-  push:
-    tags:
-      - "v*"
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
+  # push:
+  #   tags:
+  #     - "v*"
+  #   branches:
+  #     - main
+  # pull_request:
+  #   branches:
+  #     - main
 
 env:
   DOCKER_IMAGE: kakuwari/tg-chatbot
