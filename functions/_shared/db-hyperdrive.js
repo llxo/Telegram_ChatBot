@@ -354,6 +354,12 @@ export class HyperdriveStore {
       [key, String(value)],
     )
   }
+  async setSettings(entries) {
+    if (!entries || typeof entries !== 'object') return
+    for (const [k, v] of Object.entries(entries)) {
+      await this.setSetting(k, v)
+    }
+  }
   async getAllSettings() {
     const rows = await this._all('SELECT key,value FROM settings')
     const s = { ...DEFAULT_SETTINGS }

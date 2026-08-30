@@ -122,22 +122,33 @@ export class KVStore {
     return val
   }
   async setSetting(key, value) {
-    const ck = `setting:${key}`
-    const sv = String(value)
-
-    // 更新聚合设置并写回
+    return this.setSettings({ [key]: value })
+  }
+  async setSettings(entries) {
+    if (!entries || typeof entries !== 'object') return
     const current = await this.getAllSettings()
-    current[key] = sv
+    const kvWrites = []
+    let changed = false
 
-    // 并行写入聚合 Key 与单个 Key（保持向后兼容）
-    await Promise.all([
-      this.kv.put('settings:all', JSON.stringify(current)),
-      this.kv.put(ck, sv),
-    ])
+    for (const [k, v] of Object.entries(entries)) {
+      const sv = String(v)
+      if (current[k] !== sv) {
+        current[k] = sv
+        changed = true
+        const ck = `setting:${k}`
+        kvWrites.push(this.kv.put(ck, sv))
+        this._cacheSet(ck, sv, this.settingsCacheTtlMs)
+      }
+    }
 
-    // 乐观更新内存缓存，无需下一次读取重新走 KV
-    this._cacheSet(ck, sv, this.settingsCacheTtlMs)
-    this._cacheSet(this.settingsCacheKey, { ...current }, this.settingsCacheTtlMs)
+    if (changed) {
+      kvWrites.push(this.kv.put('settings:all', JSON.stringify(current)))
+      this._cacheSet(this.settingsCacheKey, { ...current }, this.settingsCacheTtlMs)
+    }
+
+    if (kvWrites.length > 0) {
+      await Promise.all(kvWrites)
+    }
   }
   async getAllSettings() {
     const cached = this._cacheGet(this.settingsCacheKey)

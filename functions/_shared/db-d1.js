@@ -56,6 +56,13 @@ export class D1Store {
   // Settings
   async getSetting(key) { const r = await this.first('SELECT value FROM settings WHERE key=?', key); return r?.value ?? null }
   async setSetting(key, value) { await this.exec('INSERT OR REPLACE INTO settings(key,value) VALUES(?,?)', key, value) }
+  async setSettings(entries) {
+    if (!entries || typeof entries !== 'object') return
+    const keys = Object.keys(entries)
+    if (!keys.length) return
+    const stmts = keys.map(k => this.d1.prepare('INSERT OR REPLACE INTO settings(key,value) VALUES(?,?)').bind(k, String(entries[k])))
+    await this.d1.batch(stmts)
+  }
   async getAllSettings() {
     const rows = await this.all('SELECT key,value FROM settings')
     const s = { ...DEFAULT_SETTINGS }

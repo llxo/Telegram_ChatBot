@@ -604,6 +604,7 @@ export async function onRequest({ request, env, waitUntil }) {
         'WEBHOOK_URL',
       ];
 
+      const toUpdate = {};
       let shouldRefreshCommands = false;
       let botTokenChanged = false;
       for (const key of allowed) {
@@ -614,42 +615,63 @@ export async function onRequest({ request, env, waitUntil }) {
         const value = key === 'BOT_LOCALE'
           ? normalizeBotLocale(body[key])
           : String(body[key]);
-        await db.setSetting(key, value);
-        if (key === 'BOT_TOKEN' || key === 'BOT_LOCALE') shouldRefreshCommands = true;
-        if (key === 'BOT_TOKEN') botTokenChanged = true;
+
+        // Diff 增量对比：仅当配置值真正改变时才加入更新队列
+        const prevVal = String(previousSettings[key] ?? '');
+        if (value !== prevVal) {
+          toUpdate[key] = value;
+          if (key === 'BOT_TOKEN') botTokenChanged = true;
+          if (key === 'BOT_TOKEN' || key === 'BOT_LOCALE') shouldRefreshCommands = true;
+        }
       }
 
+      // 一次性批量写入真正变动的设置（避免循环串行单 key 写入）
+      if (Object.keys(toUpdate).length > 0) {
+        if (db.setSettings) {
+          await db.setSettings(toUpdate);
+        } else {
+          await Promise.all(Object.entries(toUpdate).map(([k, v]) => db.setSetting(k, v)));
+        }
+      }
+
+      // 异步处理 Telegram Webhook 及菜单按钮更新（使用 waitUntil，绝不阻塞当前响应）
       const nextBotToken = botTokenChanged
         ? String(body.BOT_TOKEN || '')
         : previousBotToken;
       if (botTokenChanged && previousBotToken && previousBotToken !== nextBotToken) {
-        try {
-          const webhookResult = await new TG(previousBotToken).deleteWebhook({ dropPendingUpdates: false });
-          if (!webhookResult?.ok) {
-            console.error('delete old webhook after bot token change failed:', webhookResult);
+        const deleteOldWhTask = (async () => {
+          try {
+            const webhookResult = await new TG(previousBotToken).deleteWebhook({ dropPendingUpdates: false });
+            if (!webhookResult?.ok) {
+              console.error('delete old webhook after bot token change failed:', webhookResult);
+            }
+          } catch (e) {
+            console.error('delete old webhook after bot token change failed:', e);
           }
-        } catch (e) {
-          console.error('delete old webhook after bot token change failed:', e);
-        }
+        })();
+        if (waitUntil) waitUntil(deleteOldWhTask);
+        else deleteOldWhTask.catch(() => {});
       }
 
       if (shouldRefreshCommands) {
-        try {
-          const latest = await db.getAllSettings();
-          if (latest.BOT_TOKEN) {
-            // 从 WEBHOOK_URL 提取 origin，拼接 Mini App URL
-            if (latest.WEBHOOK_URL) {
+        const refreshMenuTask = (async () => {
+          try {
+            const latest = await db.getAllSettings();
+            if (latest.BOT_TOKEN && latest.WEBHOOK_URL) {
               const origin = new URL(latest.WEBHOOK_URL).origin;
               await setupMiniAppMenu(new TG(latest.BOT_TOKEN), `${origin}/miniapp/`);
             }
+          } catch (e) {
+            console.error('refresh commands after settings save failed:', e);
           }
-        } catch (e) {
-          console.error('refresh commands after settings save failed:', e);
-        }
+        })();
+        if (waitUntil) waitUntil(refreshMenuTask);
+        else refreshMenuTask.catch(() => {});
       }
 
-      // 返回脱敏后的最新设置，方便前端同步展示
-      return j({ ok: true, settings: maskSettingsForClient(await db.getAllSettings()) });
+      // 返回最新设置给前端（若无变动直接复用，免去多余全量查库）
+      const updatedSettings = Object.keys(toUpdate).length > 0 ? await db.getAllSettings() : previousSettings;
+      return j({ ok: true, settings: maskSettingsForClient(updatedSettings) });
     } catch {
       return err(t('settings.saveFailed'), 500);
     }

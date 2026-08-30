@@ -59,6 +59,10 @@ export class DB {
   // All other methods delegate to active store
   async getSetting(key) { return (await this._store()).getSetting(key) }
   async setSetting(key, val) { return (await this._store()).setSetting(key, val) }
+  async setSettings(entries) {
+    const store = await this._store()
+    return store.setSettings ? store.setSettings(entries) : Promise.all(Object.entries(entries).map(([k, v]) => store.setSetting(k, v)))
+  }
   async getAllSettings() { return (await this._store()).getAllSettings() }
 
   async getUser(id) { return (await this._store()).getUser(id) }
