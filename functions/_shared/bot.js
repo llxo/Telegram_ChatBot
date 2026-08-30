@@ -958,6 +958,10 @@ async function handleMsg(msg, { tg, db, kv, settings, baseUrl, t, waitUntil }) {
 
   const blockedRule = findBlockedRuleForMessage(settings, msg);
   if (blockedRule) {
+    if (settings.MESSAGE_FILTER_AUTO_BAN_ENABLED === 'true') {
+      const banReason = t('admin.reason.filterBan') || '命中屏蔽规则自动封禁';
+      await db.blockUser(user.id, banReason, 'system', false);
+    }
     await sendUserMsg({
       tg,
       settings,

@@ -411,6 +411,7 @@ On Cloudflare Pages, `CAPTCHA_SITE_URL` is auto-filled from the Webhook URL orig
 | `MSG_SENT_NOTIFY_ENABLED` | `true` | Send confirmation notice to user |
 | `ZALGO_FILTER_ENABLED` | `true` | Filter Zalgo abnormal text |
 | `MESSAGE_FILTER_RULES` | `[]` | Keyword filter rules (JSON array) |
+| `MESSAGE_FILTER_AUTO_BAN_ENABLED` | `false` | Auto-ban users matching filter rules |
 
 </details>
 

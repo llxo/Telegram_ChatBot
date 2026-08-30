@@ -31,6 +31,7 @@ export const DEFAULT_SETTINGS = {
   BOT_LOCALE: 'zh-hans', // 机器人语言：简中 / 繁中 / 英文
   ZALGO_FILTER_ENABLED: 'true',
   MESSAGE_FILTER_RULES: '[]',
+  MESSAGE_FILTER_AUTO_BAN_ENABLED: 'false',
   ACTIVE_DB: 'kv', // 当前启用的存储：KV / D1 / hyperdrive
   WEBHOOK_URL: '',
 }

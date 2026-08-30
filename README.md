@@ -411,6 +411,7 @@ Cloudflare Pages 部署时，`CAPTCHA_SITE_URL` 会自动从 Webhook URL 提取 
 | `MSG_SENT_NOTIFY_ENABLED` | `true` | 用户发送成功提示（`✅ 消息已发送...`） |
 | `ZALGO_FILTER_ENABLED` | `true` | 过滤 Zalgo 异常文本 |
 | `MESSAGE_FILTER_RULES` | `[]` | 关键词过滤规则（JSON 数组） |
+| `MESSAGE_FILTER_AUTO_BAN_ENABLED` | `false` | 用户命中屏蔽规则自动封禁 |
 
 </details>
 

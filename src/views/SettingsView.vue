@@ -401,6 +401,14 @@
               </span>
             </button>
             <div v-show="isSectionOpen('messageFilter')" class="settings-card-body">
+              <div class="toggle-row">
+                <div>
+                  <div class="toggle-label">{{ t('settings.feature.messageFilterAutoBan') }}</div>
+                  <div class="form-hint">{{ t('settings.feature.messageFilterAutoBanHint') }}</div>
+                </div>
+                <label class="toggle"><input type="checkbox" v-model="messageFilterAutoBan" /><span class="toggle-slider"></span></label>
+              </div>
+              <div class="divider"></div>
               <div class="form-hint">{{ t('settings.feature.messageFilterHint') }}</div>
 
               <div class="message-filter-guide">
@@ -689,6 +697,7 @@ const msgSentNotifyEnabled = boolProp('MSG_SENT_NOTIFY_ENABLED')
 const zalgoFilterEnabled = boolProp('ZALGO_FILTER_ENABLED')
 const inlineKbDeleteEnabled = boolProp('INLINE_KB_MSG_DELETE_ENABLED')
 const welcomeEnabled = boolProp('WELCOME_ENABLED')
+const messageFilterAutoBan = boolProp('MESSAGE_FILTER_AUTO_BAN_ENABLED')
 
 const adminList = computed({
   get: () => (form.value.ADMIN_IDS || '').split(',').map(s => s.trim()).filter(Boolean),

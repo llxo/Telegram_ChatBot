@@ -600,6 +600,7 @@ export async function onRequest({ request, env, waitUntil }) {
         'BOT_LOCALE',
         'ZALGO_FILTER_ENABLED',
         'MESSAGE_FILTER_RULES',
+        'MESSAGE_FILTER_AUTO_BAN_ENABLED',
         'WEBHOOK_URL',
       ];
 
