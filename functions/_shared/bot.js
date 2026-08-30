@@ -801,16 +801,6 @@ async function handleMsg(msg, { tg, db, kv, settings, baseUrl, t, waitUntil }) {
     const target = await db.getUserByThread(msg.message_thread_id);
     if (!target) return;
 
-    const blockedRule = findBlockedRuleForMessage(settings, msg);
-    if (blockedRule) {
-      await tg.sendMsg({
-        chatId: msg.chat.id,
-        threadId: msg.message_thread_id,
-        text: buildMessageBlockedText(blockedRule, t),
-      }).catch(() => {});
-      return;
-    }
-
     const shouldForward = await shouldProcessMessageOnce(kv, 'admin-topic-forward', msg.chat.id, msg.message_id);
     if (!shouldForward) return;
 
@@ -956,26 +946,26 @@ async function handleMsg(msg, { tg, db, kv, settings, baseUrl, t, waitUntil }) {
     return;
   }
 
-  const blockedRule = findBlockedRuleForMessage(settings, msg);
-  if (blockedRule) {
-    if (settings.MESSAGE_FILTER_AUTO_BAN_ENABLED === 'true') {
-      const banReason = t('admin.reason.filterBan') || '命中屏蔽规则自动封禁';
-      await db.blockUser(user.id, banReason, 'system', false);
-    }
-    await sendUserMsg({
-      tg,
-      settings,
-      waitUntil,
-      chatId: user.id,
-      text: buildMessageBlockedText(blockedRule, t),
-    });
-    return;
-  }
-
-  // ── 白名单跳过 ───────────────────────────────────────────────────────────
+  // ── 白名单检查（特权用户豁免关键词过滤与人机验证）─────────────────────────────
   const whitelisted = settings.WHITELIST_ENABLED === 'true' && await db.isWhitelisted(user.id);
 
   if (!whitelisted) {
+    // 仅对非白名单用户进行关键词屏蔽与自动封禁
+    const blockedRule = findBlockedRuleForMessage(settings, msg);
+    if (blockedRule) {
+      if (settings.MESSAGE_FILTER_AUTO_BAN_ENABLED === 'true') {
+        const banReason = t('admin.reason.filterBan') || '命中屏蔽规则自动封禁';
+        await db.blockUser(user.id, banReason, 'system', false);
+      }
+      await sendUserMsg({
+        tg,
+        settings,
+        waitUntil,
+        chatId: user.id,
+        text: buildMessageBlockedText(blockedRule, t),
+      });
+      return;
+    }
 
     // ── Verification ──────────────────────────────────────────────────────
     if (settings.VERIFICATION_ENABLED === 'true' && !dbUser?.is_verified) {
