@@ -1,4 +1,4 @@
-﻿const messages = {
+const messages = {
   "app.title": "Bot 管理",
   "app.mainMenu": "主菜单",
   "app.toggleLight": "切换亮色",
@@ -329,6 +329,8 @@
   "settings.feature.cmdFilterHint": "不将 /xxx 指令转发给管理员",
   "settings.feature.adminNotify": "接收管理员私聊消息",
   "settings.feature.adminNotifyHint": "管理员私聊消息仍会转发到话题；开启后若转发失败，会自动显示控制台",
+  "settings.feature.msgSentNotify": "发送成功提示",
+  "settings.feature.msgSentNotifyHint": "用户发送消息后，Bot 是否提示「✅ 消息已发送，管理员将尽快回复。」",
   "settings.feature.zalgoFilter": "过滤 Zalgo 异常文本",
   "settings.feature.zalgoFilterHint": "清理带有大量组合附加符号的异常昵称和文本，避免内容显示错乱或污染界面",
   "settings.feature.loginSessionTtl": "登录过期时长（秒）",

@@ -1,4 +1,4 @@
-﻿// functions/api/[[path]].js
+// functions/api/[[path]].js
 import { DB } from '../_shared/db.js';
 import { TG } from '../_shared/tg.js';
 import {
@@ -595,7 +595,7 @@ export async function onRequest({ request, env, waitUntil }) {
         'RECAPTCHA_V3_SITE_KEY', 'RECAPTCHA_V3_SECRET_KEY', 'RECAPTCHA_V3_SCORE_THRESHOLD',
         'HCAPTCHA_SITE_KEY', 'HCAPTCHA_SECRET_KEY',
         'WELCOME_ENABLED', 'WELCOME_MESSAGE', 'BOT_COMMAND_FILTER', 'WHITELIST_ENABLED',
-        'ADMIN_NOTIFY_ENABLED',
+        'ADMIN_NOTIFY_ENABLED', 'MSG_SENT_NOTIFY_ENABLED',
         'LOGIN_SESSION_TTL',
         'BOT_LOCALE',
         'ZALGO_FILTER_ENABLED',

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="page">
     <div class="page-header">
       <h2 class="page-title page-title-with-icon">
@@ -340,6 +340,14 @@
               <div class="divider"></div>
               <div class="toggle-row">
                 <div>
+                  <div class="toggle-label">{{ t('settings.feature.msgSentNotify') }}</div>
+                  <div class="form-hint">{{ t('settings.feature.msgSentNotifyHint') }}</div>
+                </div>
+                <label class="toggle"><input type="checkbox" v-model="msgSentNotifyEnabled" /><span class="toggle-slider"></span></label>
+              </div>
+              <div class="divider"></div>
+              <div class="toggle-row">
+                <div>
                   <div class="toggle-label">{{ t('settings.feature.zalgoFilter') }}</div>
                   <div class="form-hint">{{ t('settings.feature.zalgoFilterHint') }}</div>
                 </div>
@@ -677,6 +685,7 @@ const autoUnblock = boolProp('AUTO_UNBLOCK_ENABLED')
 const whitelistEnabled = boolProp('WHITELIST_ENABLED')
 const cmdFilter = boolProp('BOT_COMMAND_FILTER')
 const adminNotifyEnabled = boolProp('ADMIN_NOTIFY_ENABLED')
+const msgSentNotifyEnabled = boolProp('MSG_SENT_NOTIFY_ENABLED')
 const zalgoFilterEnabled = boolProp('ZALGO_FILTER_ENABLED')
 const inlineKbDeleteEnabled = boolProp('INLINE_KB_MSG_DELETE_ENABLED')
 const welcomeEnabled = boolProp('WELCOME_ENABLED')

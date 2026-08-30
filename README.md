@@ -408,6 +408,7 @@ Cloudflare Pages 部署时，`CAPTCHA_SITE_URL` 会自动从 Webhook URL 提取 
 | `WHITELIST_ENABLED` | `false` | 白名单功能（跳过验证） |
 | `BOT_COMMAND_FILTER` | `true` | 过滤 `/xxx` 指令不转发给管理员 |
 | `ADMIN_NOTIFY_ENABLED` | `false` | 管理员私聊消息通知 |
+| `MSG_SENT_NOTIFY_ENABLED` | `true` | 用户发送成功提示（`✅ 消息已发送...`） |
 | `ZALGO_FILTER_ENABLED` | `true` | 过滤 Zalgo 异常文本 |
 | `MESSAGE_FILTER_RULES` | `[]` | 关键词过滤规则（JSON 数组） |
 

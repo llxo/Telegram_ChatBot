@@ -408,6 +408,7 @@ On Cloudflare Pages, `CAPTCHA_SITE_URL` is auto-filled from the Webhook URL orig
 | `WHITELIST_ENABLED` | `false` | Whitelist feature (skip verification) |
 | `BOT_COMMAND_FILTER` | `true` | Filter `/xxx` commands from forwarding |
 | `ADMIN_NOTIFY_ENABLED` | `false` | Admin DM notifications |
+| `MSG_SENT_NOTIFY_ENABLED` | `true` | Send confirmation notice to user |
 | `ZALGO_FILTER_ENABLED` | `true` | Filter Zalgo abnormal text |
 | `MESSAGE_FILTER_RULES` | `[]` | Keyword filter rules (JSON array) |
 

@@ -1106,7 +1106,9 @@ async function handleMsg(msg, { tg, db, kv, settings, baseUrl, t, waitUntil }) {
     if (waitUntil) waitUntil(recordTask);
     else await recordTask;
     await reactSentOk({ tg, chatId: msg.chat.id, msgId: msg.message_id });
-    await tg.sendMsg({ chatId: user.id, text: t('sentToAdmin') });
+    if (settings.MSG_SENT_NOTIFY_ENABLED !== 'false') {
+      await tg.sendMsg({ chatId: user.id, text: t('sentToAdmin') });
+    }
   } else {
     // 话题可能已被删除 — 清除过期 thread_id，重建话题后重试一次
     console.warn('copyMsg failed (thread may be deleted), retrying with new thread:', res);
@@ -1130,7 +1132,9 @@ async function handleMsg(msg, { tg, db, kv, settings, baseUrl, t, waitUntil }) {
         if (waitUntil) waitUntil(recordTask);
         else await recordTask;
         await reactSentOk({ tg, chatId: msg.chat.id, msgId: msg.message_id });
-        await tg.sendMsg({ chatId: user.id, text: t('sentToAdmin') });
+        if (settings.MSG_SENT_NOTIFY_ENABLED !== 'false') {
+          await tg.sendMsg({ chatId: user.id, text: t('sentToAdmin') });
+        }
         return;
       }
     }

@@ -1,4 +1,4 @@
-﻿const messages = {
+const messages = {
   "app.title": "Bot Admin",
   "app.mainMenu": "Main Menu",
   "app.toggleLight": "Switch to Light",
@@ -329,6 +329,8 @@
   "settings.feature.cmdFilterHint": "Do not forward /xxx commands to admins",
   "settings.feature.adminNotify": "Receive admin private messages",
   "settings.feature.adminNotifyHint": "Admin private messages will still be forwarded to topics; when enabled, the control panel will open automatically if forwarding fails",
+  "settings.feature.msgSentNotify": "Message Sent Notification",
+  "settings.feature.msgSentNotifyHint": "Send confirmation message to user after message forwarded",
   "settings.feature.zalgoFilter": "Filter Zalgo text",
   "settings.feature.zalgoFilterHint": "Clean names and messages containing excessive combining marks to avoid garbled display and UI pollution",
   "settings.feature.loginSessionTtl": "Login session expiration (seconds)",
