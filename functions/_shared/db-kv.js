@@ -114,30 +114,58 @@ export class KVStore {
     const ck = `setting:${key}`
     const cached = this._cacheGet(ck)
     if (cached !== undefined) return cached
-    const v = await this.kv.get(ck)
-    // Negative cache for null/empty
-    if (v === null || v === undefined || v === '') {
-      this._cacheSet(ck, null, this.negativeCacheTtlMs)
-      return null
-    }
-    this._cacheSet(ck, v, this.settingsCacheTtlMs)
-    return v
+
+    // 优先从全局 settings 缓存或聚合 JSON 中获取
+    const all = await this.getAllSettings()
+    const val = all[key] ?? null
+    this._cacheSet(ck, val, this.settingsCacheTtlMs)
+    return val
   }
   async setSetting(key, value) {
     const ck = `setting:${key}`
     const sv = String(value)
-    await this.kv.put(ck, sv)
+
+    // 更新聚合设置并写回
+    const current = await this.getAllSettings()
+    current[key] = sv
+
+    // 并行写入聚合 Key 与单个 Key（保持向后兼容）
+    await Promise.all([
+      this.kv.put('settings:all', JSON.stringify(current)),
+      this.kv.put(ck, sv),
+    ])
+
+    // 乐观更新内存缓存，无需下一次读取重新走 KV
     this._cacheSet(ck, sv, this.settingsCacheTtlMs)
-    this._invalidateSettingsCache()
+    this._cacheSet(this.settingsCacheKey, { ...current }, this.settingsCacheTtlMs)
   }
   async getAllSettings() {
     const cached = this._cacheGet(this.settingsCacheKey)
     if (cached !== undefined) return { ...cached } // return a shallow copy
+
+    // 1. 尝试从单个聚合 JSON 读取（启用 cacheTtl: 60 边缘缓存加速）
+    try {
+      const agg = await this.kv.get('settings:all', { type: 'json', cacheTtl: 60 })
+      if (agg && typeof agg === 'object') {
+        const s = { ...DEFAULT_SETTINGS, ...agg }
+        this._cacheSet(this.settingsCacheKey, { ...s }, this.settingsCacheTtlMs)
+        return s
+      }
+    } catch {}
+
+    // 2. 回退与自动迁移（首次运行无 settings:all 时，从旧的单 key 聚合读取并自动迁移）
     const s = { ...DEFAULT_SETTINGS }
     await Promise.all(Object.keys(s).map(async k => {
-      const v = await this.getSetting(k)
-      if (v !== null) s[k] = v
+      const ck = `setting:${k}`
+      const v = await this.kv.get(ck)
+      if (v !== null && v !== undefined && v !== '') {
+        s[k] = v
+        this._cacheSet(ck, v, this.settingsCacheTtlMs)
+      }
     }))
+
+    // 自动将聚合后的数据写入 settings:all 供后续使用
+    await this.kv.put('settings:all', JSON.stringify(s)).catch(() => {})
     this._cacheSet(this.settingsCacheKey, { ...s }, this.settingsCacheTtlMs)
     return s
   }
@@ -574,6 +602,7 @@ export class KVStore {
       const keys = await kvListAll(this.kv, prefix)
       await Promise.all(keys.map(k => this.kv.delete(k.name).catch(() => {})))
     }
+    await this.kv.delete('settings:all').catch(() => {})
 
     await this.setSetting('ACTIVE_DB', activeDb)
     this.cache.clear()
