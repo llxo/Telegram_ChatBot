@@ -56,6 +56,11 @@ function isWebAdmin(user) {
 /** 为用户列表附加 is_whitelisted，避免前端 N+1 */
 async function attachWhitelistFlags(db, payload) {
   if (!payload || !Array.isArray(payload.users)) return payload;
+  const wlEnabled = (await db.getSetting('WHITELIST_ENABLED')) === 'true';
+  if (!wlEnabled) {
+    const users = payload.users.map(u => u ? { ...u, is_whitelisted: false } : u);
+    return { ...payload, users };
+  }
   const users = await Promise.all(payload.users.map(async (u) => {
     if (!u) return u;
     if (u.is_blocked) return { ...u, is_whitelisted: false };
@@ -1331,7 +1336,11 @@ async function handleTelegramLogin(initData, db, kv, t, request) {
  * 在每次非写设置接口的请求中触发（fire-and-forget）。
  * 通过 KV 键 miniapp_menu_set 标记已设置，避免重复调用 Telegram Bot API。
  */
+let _miniAppMenuChecked = false;
 async function ensureMiniAppMenu(kv, db) {
+  if (_miniAppMenuChecked) return;
+  _miniAppMenuChecked = true;
+
   // 缓存键包含部署版本，版本变化（重新部署）时自动重新设置 Menu Button
   const cacheKey = `miniapp_menu_set:${DEPLOY_VERSION}`;
   const already = await kv.get(cacheKey).catch(() => null);

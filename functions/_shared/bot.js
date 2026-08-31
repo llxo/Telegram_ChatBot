@@ -782,7 +782,7 @@ export async function processUpdate(update, env) {
   if (!env?.KV) { console.error('KV not bound'); return; }
   const db  = env._db;
   try {
-    const settings = await db.getAllSettings();
+    const settings = env.settings || (await db.getAllSettings());
     if (!settings.BOT_TOKEN)      { console.error('BOT_TOKEN missing'); return; }
     if (!settings.FORUM_GROUP_ID) { console.error('FORUM_GROUP_ID missing'); return; }
     const locale = normalizeBotLocale(settings.BOT_LOCALE);
@@ -887,10 +887,8 @@ async function handleMsg(msg, { tg, db, kv, settings, baseUrl, t, waitUntil }) {
       return;
     }
     if (cmd === 'status') {
-      const [u, isWl] = await Promise.all([
-        db.getUser(user.id),
-        db.isWhitelisted(user.id),
-      ]);
+      const isWl = settings.WHITELIST_ENABLED === 'true' && (await db.isWhitelisted(user.id));
+      const u = await db.getUser(user.id);
       await sendUserMsg({
         tg,
         settings,
@@ -905,7 +903,7 @@ async function handleMsg(msg, { tg, db, kv, settings, baseUrl, t, waitUntil }) {
   }
 
   // ── 白名单检查（特权用户豁免封禁、关键词过滤与人机验证）───────────────────────
-  const whitelisted = await db.isWhitelisted(user.id);
+  const whitelisted = settings.WHITELIST_ENABLED === 'true' && (await db.isWhitelisted(user.id));
 
   // ── 封禁检查（非白名单用户）───────────────────────────────────────────────
   const dbUser = await db.getUser(user.id);
@@ -1442,10 +1440,8 @@ async function handleCb(q, { tg, db, kv, settings, t, waitUntil }) {
       return;
     }
     if (data === 'user:status') {
-      const [u, isWl] = await Promise.all([
-        db.getUser(user.id),
-        db.isWhitelisted(user.id),
-      ]);
+      const isWl = settings.WHITELIST_ENABLED === 'true' && (await db.isWhitelisted(user.id));
+      const u = await db.getUser(user.id);
       await editUserText({
         tg,
         settings,

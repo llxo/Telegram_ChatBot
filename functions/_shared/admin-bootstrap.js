@@ -52,12 +52,27 @@ function assertValidEnvPassword(password) {
   }
 }
 
+let _cachedBootstrap = null
+let _cachedBootstrapAt = 0
+const BOOTSTRAP_CACHE_TTL = 30000
+
 async function readBootstrap(kv) {
+  if (_cachedBootstrap && Date.now() - _cachedBootstrapAt < BOOTSTRAP_CACHE_TTL) {
+    return _cachedBootstrap
+  }
   const raw = await kv.get(BOOTSTRAP_KEY)
-  if (!raw) return null
+  if (!raw) {
+    _cachedBootstrap = null
+    _cachedBootstrapAt = Date.now()
+    return null
+  }
   try {
     const record = JSON.parse(raw)
-    if (record?.version === 2 && typeof record.state === 'string') return record
+    if (record?.version === 2 && typeof record.state === 'string') {
+      _cachedBootstrap = record
+      _cachedBootstrapAt = Date.now()
+      return record
+    }
   } catch { /* noop */ }
   throw new BootstrapError('初始管理员状态损坏，请检查 KV 中的 auth:bootstrap:v2')
 }
@@ -65,6 +80,8 @@ async function readBootstrap(kv) {
 async function writeBootstrap(kv, record) {
   const next = { ...record, version: 2, updatedAt: nowIso() }
   await kv.put(BOOTSTRAP_KEY, JSON.stringify(next))
+  _cachedBootstrap = next
+  _cachedBootstrapAt = Date.now()
   return next
 }
 

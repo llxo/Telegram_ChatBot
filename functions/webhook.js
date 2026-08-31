@@ -1,6 +1,5 @@
 // functions/webhook.js
 import { DB } from './_shared/db.js';
-import { ensureAdminInitializedOnce } from './_shared/admin-bootstrap.js';
 import { processUpdate } from './_shared/bot.js';
 import { timingSafeEqualStr } from './_shared/auth.js';
 import { createT, normalizeLocale } from '../shared/i18n.js';
@@ -12,12 +11,12 @@ export async function onRequestPost(context) {
     if (!env.KV) return new Response(earlyT('webhook.kvNotBound'), { status: 500 });
 
     const db = new DB(env.KV, env.D1 || null, env.HYPERDRIVE || null);
+    const settings = await db.getAllSettings();
 
-    // 先读取 webhook secret，校验不通过不触发昂贵的初始化
-    const botLocale = normalizeLocale(await db.getSetting('BOT_LOCALE'));
+    const botLocale = normalizeLocale(settings.BOT_LOCALE);
     const t = createT(botLocale);
 
-    const secret = String(await db.getSetting('WEBHOOK_SECRET') || '').trim();
+    const secret = String(settings.WEBHOOK_SECRET || '').trim();
     const received = request.headers.get('X-Telegram-Bot-Api-Secret-Token') || '';
     // 未配置 secret 时拒绝所有 webhook，避免公网伪造 update
     if (!secret) {
@@ -28,10 +27,6 @@ export async function onRequestPost(context) {
       console.error('Webhook secret mismatch');
       return new Response(t('webhook.unauthorized'), { status: 401 });
     }
-
-    // Secret 校验通过后执行初始化
-    await db.autoRepair();
-    await ensureAdminInitializedOnce({ db, kv: env.KV, env });
 
     let update;
     try {
@@ -46,7 +41,7 @@ export async function onRequestPost(context) {
     console.log(`[webhook] ${updateType} from user ${userId}`);
 
     const baseUrl = new URL(request.url).origin;
-    const ctx = { _db: db, KV: env.KV, baseUrl, waitUntil };
+    const ctx = { _db: db, KV: env.KV, settings, baseUrl, waitUntil };
 
     waitUntil(processUpdate(update, ctx).catch(e => console.error('[processUpdate]', e)));
     return new Response(t('webhook.ok'));

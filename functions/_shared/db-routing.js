@@ -2,14 +2,25 @@ import { DEFAULT_SETTINGS } from './db-settings.js'
 
 const AUTO_REPAIR_INTERVAL_MS = 10 * 60 * 1000
 let localAutoRepairAt = 0
+let _cachedActiveDb = null
+let _cachedActiveDbAt = 0
+const ACTIVE_DB_CACHE_TTL = 60000
 
 export async function resolveActiveDb({ kv, d1Store, hyperdriveStore }) {
+  if (_cachedActiveDb && Date.now() - _cachedActiveDbAt < ACTIVE_DB_CACHE_TTL) {
+    return _cachedActiveDb
+  }
+
   // Prefer Hyperdrive marker when Hyperdrive is bound (strongly consistent).
   if (hyperdriveStore) {
     try {
       await hyperdriveStore.initSchema()
       const fromHyperdrive = await hyperdriveStore.getSetting('ACTIVE_DB')
-      if (fromHyperdrive === 'kv' || fromHyperdrive === 'd1' || fromHyperdrive === 'hyperdrive') return fromHyperdrive
+      if (fromHyperdrive === 'kv' || fromHyperdrive === 'd1' || fromHyperdrive === 'hyperdrive') {
+        _cachedActiveDb = fromHyperdrive
+        _cachedActiveDbAt = Date.now()
+        return fromHyperdrive
+      }
     } catch (e) {
       console.error('resolve active db from Hyperdrive failed:', e)
     }
@@ -20,7 +31,11 @@ export async function resolveActiveDb({ kv, d1Store, hyperdriveStore }) {
     try {
       await d1Store.initSchema()
       const fromD1 = await d1Store.getSetting('ACTIVE_DB')
-      if (fromD1 === 'kv' || fromD1 === 'd1' || fromD1 === 'hyperdrive') return fromD1
+      if (fromD1 === 'kv' || fromD1 === 'd1' || fromD1 === 'hyperdrive') {
+        _cachedActiveDb = fromD1
+        _cachedActiveDbAt = Date.now()
+        return fromD1
+      }
     } catch (e) {
       console.error('resolve active db from D1 failed:', e)
     }
@@ -28,8 +43,14 @@ export async function resolveActiveDb({ kv, d1Store, hyperdriveStore }) {
 
   // Fallback to KV marker (legacy / no D1 / no Hyperdrive).
   const fromKv = await kv.get('config:active_db')
-  if (fromKv === 'kv' || fromKv === 'd1' || fromKv === 'hyperdrive') return fromKv
+  if (fromKv === 'kv' || fromKv === 'd1' || fromKv === 'hyperdrive') {
+    _cachedActiveDb = fromKv
+    _cachedActiveDbAt = Date.now()
+    return fromKv
+  }
 
+  _cachedActiveDb = 'kv'
+  _cachedActiveDbAt = Date.now()
   return 'kv'
 }
 
@@ -112,6 +133,9 @@ export async function switchDbStore({ kv, kvStore, d1Store, hyperdriveStore }, t
   if (target !== 'kv' && target !== 'd1' && target !== 'hyperdrive') throw new Error('Invalid target')
   if ((target === 'd1') && !d1Store) throw new Error('D1 not bound')
   if (target === 'hyperdrive' && !hyperdriveStore) throw new Error('Hyperdrive not bound')
+
+  _cachedActiveDb = target
+  _cachedActiveDbAt = Date.now()
 
   // Keep KV marker for backward compatibility.
   await kv.put('config:active_db', target)

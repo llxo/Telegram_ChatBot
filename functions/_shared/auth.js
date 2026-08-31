@@ -134,6 +134,9 @@ export async function verifyPw(pw, stored) {
   return timingSafeEqualStr(toHex(b), h);
 }
 
+const _sessionCache = new Map();
+const SESSION_MEM_CACHE_TTL = 15000; // 15s in-memory cache
+
 export async function createSession(kv, userId, ttlSeconds = DEFAULT_TTL) {
   const ttl = Math.max(300, parseInt(ttlSeconds, 10) || DEFAULT_TTL);
   const token = genToken();
@@ -142,6 +145,7 @@ export async function createSession(kv, userId, ttlSeconds = DEFAULT_TTL) {
   await kv.put(`sess:${token}`, JSON.stringify(sessionData), { expirationTtl: ttl });
   // 用户维度索引，便于改密后吊销全部会话
   await kv.put(`sess_user:${userId}:${token}`, '1', { expirationTtl: ttl }).catch(() => {});
+  _sessionCache.set(token, { session: sessionData, expiresAt: Date.now() + Math.min(SESSION_MEM_CACHE_TTL, ttl * 1000) });
   return token;
 }
 
@@ -152,32 +156,44 @@ async function getSessionEpoch(kv, userId) {
 export async function bumpSessionEpoch(kv, userId) {
   const epoch = genToken(24)
   await kv.put(`auth:session_epoch:${userId}`, epoch)
+  _sessionCache.clear()
   return epoch
 }
 
 export async function getSession(kv, token) {
   if (!token) return null;
+  const memHit = _sessionCache.get(token);
+  if (memHit && memHit.expiresAt > Date.now() && memHit.session.exp > Date.now()) {
+    return memHit.session;
+  }
   const raw = await kv.get(`sess:${token}`);
-  if (!raw) return null;
+  if (!raw) {
+    _sessionCache.delete(token);
+    return null;
+  }
   let s;
   try { s = JSON.parse(raw); } catch { return null; }
   if (!s || !s.userId || !Number.isFinite(s.exp)) return null
   if (Date.now() > s.exp) {
     await kv.delete(`sess:${token}`);
     if (s.userId) await kv.delete(`sess_user:${s.userId}:${token}`).catch(() => {});
+    _sessionCache.delete(token);
     return null;
   }
   const currentEpoch = await getSessionEpoch(kv, s.userId)
   if (String(s.epoch || '0') !== String(currentEpoch)) {
     await kv.delete(`sess:${token}`).catch(() => {})
     await kv.delete(`sess_user:${s.userId}:${token}`).catch(() => {})
+    _sessionCache.delete(token);
     return null
   }
+  _sessionCache.set(token, { session: s, expiresAt: Date.now() + SESSION_MEM_CACHE_TTL });
   return s;
 }
 
 export async function delSession(kv, token) {
   if (!token) return;
+  _sessionCache.delete(token);
   const raw = await kv.get(`sess:${token}`).catch(() => null);
   await kv.delete(`sess:${token}`);
   if (raw) {
