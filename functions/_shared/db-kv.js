@@ -203,6 +203,11 @@ export class KVStore {
     const rec = { ...ex, ...u, created_at: ex?.created_at || new Date().toISOString() }
     await this.kv.put(`user:${u.user_id}`, JSON.stringify(rec))
     this._cacheSet(`user:${u.user_id}`, rec, 60000)
+    if (rec.is_blocked && rec.thread_id) {
+      await this.kv.put(`blocked_thread:${u.user_id}`, String(rec.thread_id))
+    } else if (rec.is_blocked === 0 || rec.thread_id === null) {
+      await this.kv.delete(`blocked_thread:${u.user_id}`).catch(() => {})
+    }
     if (u.username) await this.kv.put(`username:${u.username.toLowerCase()}`, String(u.user_id))
     _invalidateUsersList()
   }
@@ -212,6 +217,9 @@ export class KVStore {
       u.thread_id = threadId
       await this.kv.put(`user:${userId}`, JSON.stringify(u))
       this._cacheSet(`user:${userId}`, u, 60000)
+      if (u.is_blocked) {
+        await this.kv.put(`blocked_thread:${userId}`, String(threadId))
+      }
     }
     await this.kv.put(`thread:${threadId}`, String(userId))
     _invalidateUsersList()
@@ -235,6 +243,9 @@ export class KVStore {
       Object.assign(u, { is_blocked: 1, is_permanent_block: permanent ? 1 : 0, block_reason: reason, blocked_by: blockedBy })
       await this.kv.put(`user:${userId}`, JSON.stringify(u))
       this._cacheSet(`user:${userId}`, u, 60000)
+      if (u.thread_id) {
+        await this.kv.put(`blocked_thread:${userId}`, String(u.thread_id))
+      }
     }
     // Ban should take priority over whitelist to avoid conflicting state.
     await this.removeFromWhitelist(userId).catch(() => {})
@@ -247,6 +258,7 @@ export class KVStore {
       await this.kv.put(`user:${userId}`, JSON.stringify(u))
       this._cacheSet(`user:${userId}`, u, 60000)
     }
+    await this.kv.delete(`blocked_thread:${userId}`).catch(() => {})
     _invalidateUsersList()
   }
   async updateUsername(userId, newUsername) {
@@ -305,8 +317,21 @@ export class KVStore {
     return { users: all.slice(start, start + pageSize), total: all.length }
   }
   async getBlockedUsersWithThread() {
-    const raw = await this.getAllUsersRaw()
-    return raw.filter(u => u && u.is_blocked && u.thread_id && u.thread_id !== 0)
+    const keys = await kvListAll(this.kv, 'blocked_thread:')
+    if (!keys || keys.length === 0) return []
+    const results = await Promise.all(
+      keys.map(async (k) => {
+        const uidStr = k.name.slice('blocked_thread:'.length)
+        const userId = parseInt(uidStr, 10)
+        const tidStr = await this.kv.get(k.name)
+        const threadId = tidStr ? parseInt(tidStr, 10) : null
+        if (userId && threadId) {
+          return { user_id: userId, id: userId, thread_id: threadId }
+        }
+        return null
+      })
+    )
+    return results.filter(Boolean)
   }
   async getNormalUsers(page = 1, pageSize = 20) {
     const raw = await this.getAllUsersRaw()
@@ -494,6 +519,7 @@ export class KVStore {
       await this.kv.put(`user:${userId}`, JSON.stringify(u))
       this._cacheSet(`user:${userId}`, u)
     }
+    await this.kv.delete(`blocked_thread:${userId}`).catch(() => {})
     _invalidateListsContaining('user:')
   }
 
@@ -507,6 +533,7 @@ export class KVStore {
     await this.deleteUserMsgs(uid).catch(() => {})
     await this.clearUserThread(uid).catch(() => {})
     await this.removeFromWhitelist(uid).catch(() => {})
+    await this.kv.delete(`blocked_thread:${uid}`).catch(() => {})
 
     if (u.username) await this.kv.delete(`username:${String(u.username).toLowerCase()}`).catch(() => {})
     await this.kv.delete(`user:${uid}`).catch(() => {})

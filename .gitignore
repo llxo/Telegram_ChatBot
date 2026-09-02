@@ -29,3 +29,7 @@ data/
 # 本地开发文件
 CLAUDE.md
 .mailmap
+
+# Agent skills & lock
+.agents/
+skills-lock.json

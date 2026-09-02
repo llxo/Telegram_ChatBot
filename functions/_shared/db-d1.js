@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS web_users (
 );
 CREATE INDEX IF NOT EXISTS idx_messages_user ON messages(user_id);
 CREATE INDEX IF NOT EXISTS idx_messages_created ON messages(created_at);
+CREATE INDEX IF NOT EXISTS idx_users_blocked_thread ON users(is_blocked, thread_id);
 `
 
 export class D1Store {
@@ -126,7 +127,7 @@ export class D1Store {
     return { users, total: countRow?.cnt || 0 }
   }
   async getBlockedUsersWithThread() {
-    return this.all('SELECT * FROM users WHERE is_blocked=1 AND thread_id IS NOT NULL AND thread_id != 0 AND thread_id != ""')
+    return this.all('SELECT user_id, thread_id FROM users WHERE is_blocked=1 AND thread_id IS NOT NULL AND thread_id != 0 AND thread_id != ""')
   }
   async getNormalUsers(page = 1, pageSize = 20) {
     const offset = (page - 1) * pageSize

@@ -39,12 +39,7 @@ export async function cleanupBannedUserTopics({ db, settings, tg }) {
   const tgClient = tg || new TG(botToken);
   let bannedUsers = [];
   try {
-    if (typeof db.getBlockedUsersWithThread === 'function') {
-      bannedUsers = await db.getBlockedUsersWithThread();
-    } else {
-      const allRaw = await db.getAllUsersRaw().catch(() => []);
-      bannedUsers = allRaw.filter((u) => u && u.is_blocked && u.thread_id);
-    }
+    bannedUsers = await db.getBlockedUsersWithThread();
   } catch (err) {
     console.error('[topic-cleanup] 查询被封禁用户失败:', err);
     return { ok: false, reason: 'db_error', count: 0 };

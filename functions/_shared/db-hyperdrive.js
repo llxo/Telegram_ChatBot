@@ -140,6 +140,7 @@ CREATE TABLE IF NOT EXISTS messages (
 
 CREATE INDEX IF NOT EXISTS idx_messages_user ON messages(user_id);
 CREATE INDEX IF NOT EXISTS idx_messages_created ON messages(created_at);
+CREATE INDEX IF NOT EXISTS idx_users_blocked_thread ON users(is_blocked, thread_id);
 
 CREATE TABLE IF NOT EXISTS recent_convs (
   user_id BIGINT PRIMARY KEY,
@@ -184,7 +185,8 @@ CREATE TABLE IF NOT EXISTS users (
   is_permanent_block TINYINT DEFAULT 0,
   block_reason TEXT,
   blocked_by TEXT,
-  created_at TEXT
+  created_at TEXT,
+  INDEX idx_users_blocked_thread (is_blocked, thread_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS thread_map (
@@ -431,7 +433,7 @@ export class HyperdriveStore {
     return { users, total: countRow?.cnt || 0 }
   }
   async getBlockedUsersWithThread() {
-    return this._all('SELECT * FROM users WHERE is_blocked=1 AND thread_id IS NOT NULL AND thread_id != 0')
+    return this._all('SELECT user_id, thread_id FROM users WHERE is_blocked=1 AND thread_id IS NOT NULL AND thread_id != 0')
   }
   async getNormalUsers(page = 1, pageSize = 20) {
     const offset = (page - 1) * pageSize

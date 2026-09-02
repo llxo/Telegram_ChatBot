@@ -92,6 +92,7 @@ export async function autoRepairDb({ kv, kvStore, d1Store, hyperdriveStore }, fo
       await d1Store.exec('UPDATE users SET is_verified=COALESCE(is_verified,0), is_blocked=COALESCE(is_blocked,0), is_permanent_block=COALESCE(is_permanent_block,0)')
       await d1Store.exec('DELETE FROM thread_map WHERE user_id NOT IN (SELECT user_id FROM users)')
       await d1Store.exec('INSERT OR REPLACE INTO thread_map(thread_id,user_id) SELECT thread_id,user_id FROM users WHERE thread_id IS NOT NULL')
+      await d1Store.exec('CREATE INDEX IF NOT EXISTS idx_users_blocked_thread ON users(is_blocked, thread_id)').catch(() => {})
     }
 
     // Hyperdrive: ensure data consistency
@@ -104,6 +105,7 @@ export async function autoRepairDb({ kv, kvStore, d1Store, hyperdriveStore }, fo
         await hyperdriveStore.exec(
           'INSERT INTO thread_map(thread_id,user_id) SELECT thread_id,user_id FROM users WHERE thread_id IS NOT NULL ON CONFLICT(thread_id) DO UPDATE SET user_id=EXCLUDED.user_id',
         )
+        await hyperdriveStore.exec('CREATE INDEX IF NOT EXISTS idx_users_blocked_thread ON users(is_blocked, thread_id)').catch(() => {})
       } else {
         // MySQL variant
         await hyperdriveStore.exec(
@@ -113,6 +115,7 @@ export async function autoRepairDb({ kv, kvStore, d1Store, hyperdriveStore }, fo
         await hyperdriveStore.exec(
           'INSERT INTO thread_map(thread_id,user_id) SELECT thread_id,user_id FROM users WHERE thread_id IS NOT NULL ON DUPLICATE KEY UPDATE user_id=VALUES(user_id)',
         )
+        await hyperdriveStore.exec('ALTER TABLE users ADD INDEX idx_users_blocked_thread (is_blocked, thread_id)').catch(() => {})
       }
     }
 
@@ -120,6 +123,9 @@ export async function autoRepairDb({ kv, kvStore, d1Store, hyperdriveStore }, fo
       const users = await kvStore.getAllUsersRaw()
       for (const u of users) {
         if (u?.thread_id) await kv.put(`thread:${u.thread_id}`, String(u.user_id))
+        if (u?.is_blocked && u?.thread_id) {
+          await kv.put(`blocked_thread:${u.user_id}`, String(u.thread_id))
+        }
       }
     }
 
