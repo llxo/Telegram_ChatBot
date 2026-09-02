@@ -14,6 +14,7 @@ import { renderCaptchaPNG } from '../_shared/captcha.js';
 import { setupMiniAppMenu, getOrCreateThread, DEPLOY_VERSION } from '../_shared/bot.js';
 import { normalizeBotLocale, createBotT } from '../_shared/bot-i18n.js';
 import { exportBusinessDataSql, importBusinessDataSql, parseBusinessSql } from '../_shared/db-sql.js';
+import { cleanupBannedUserTopics } from '../_shared/topic-cleanup.js';
 import { createT, normalizeLocale } from '../../shared/i18n.js';
 
 /** 返回给前端时需要脱敏的密钥字段 */
@@ -1090,6 +1091,17 @@ export async function onRequest({ request, env, waitUntil }) {
     } catch (e) {
       console.error('[API Error] conversations.deleteFailed:', e.message);
       return err(t('conversations.deleteFailed'), 500);
+    }
+  }
+
+  // 手动触发清理所有被封禁用户的话题
+  if (path === '/topics/cleanup-banned' && request.method === 'POST') {
+    try {
+      const result = await cleanupBannedUserTopics({ db, kv: env.KV });
+      return j(result);
+    } catch (e) {
+      console.error('[API Error] topics.cleanupBanned:', e.message);
+      return err(e.message || 'Cleanup failed', 500);
     }
   }
 

@@ -311,6 +311,8 @@ const messages = {
   "settings.verify.maxAttemptsHint": "驗證失敗達上限後需重新傳送訊息。範圍 1-10 次。",
   "settings.feature.autoUnblock": "自動解封申訴",
   "settings.feature.autoUnblockHint": "允許被封鎖使用者發起申訴",
+  "settings.feature.autoDeleteBannedTopics": "定時刪除封鎖使用者話題",
+  "settings.feature.autoDeleteBannedTopicsHint": "每天 UTC+8 08:00 (UTC 00:00) 自動呼叫 Telegram API 刪除被封鎖使用者的話題",
   "settings.feature.whitelist": "白名單功能",
   "settings.feature.whitelistHint": "白名單使用者可跳過驗證",
   "settings.feature.cmdFilter": "過濾機器人指令",

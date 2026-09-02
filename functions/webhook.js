@@ -3,6 +3,7 @@ import { DB } from './_shared/db.js';
 import { processUpdate } from './_shared/bot.js';
 import { timingSafeEqualStr } from './_shared/auth.js';
 import { createT, normalizeLocale } from '../shared/i18n.js';
+import { checkAndRunScheduledTopicCleanup } from './_shared/topic-cleanup.js';
 
 export async function onRequestPost(context) {
   const { request, env, waitUntil } = context;
@@ -44,6 +45,7 @@ export async function onRequestPost(context) {
     const ctx = { _db: db, KV: env.KV, settings, baseUrl, waitUntil };
 
     waitUntil(processUpdate(update, ctx).catch(e => console.error('[processUpdate]', e)));
+    waitUntil(checkAndRunScheduledTopicCleanup(db, env.KV, settings).catch(e => console.error('[topicCleanup]', e)));
     return new Response(t('webhook.ok'));
   } catch (e) {
     console.error('[webhook error]', e);

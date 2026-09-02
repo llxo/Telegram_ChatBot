@@ -316,6 +316,14 @@
               <div class="divider"></div>
               <div class="toggle-row">
                 <div>
+                  <div class="toggle-label">{{ t('settings.feature.autoDeleteBannedTopics') }}</div>
+                  <div class="form-hint">{{ t('settings.feature.autoDeleteBannedTopicsHint') }}</div>
+                </div>
+                <label class="toggle"><input type="checkbox" v-model="autoDeleteBannedTopics" /><span class="toggle-slider"></span></label>
+              </div>
+              <div class="divider"></div>
+              <div class="toggle-row">
+                <div>
                   <div class="toggle-label">{{ t('settings.feature.whitelist') }}</div>
                   <div class="form-hint">{{ t('settings.feature.whitelistHint') }}</div>
                 </div>
@@ -690,6 +698,7 @@ const currentDbLabel = computed(() => {
 const boolProp = key => computed({ get: () => form.value[key] === 'true', set: v => { form.value[key] = v ? 'true' : 'false' } })
 const verifyEnabled = boolProp('VERIFICATION_ENABLED')
 const autoUnblock = boolProp('AUTO_UNBLOCK_ENABLED')
+const autoDeleteBannedTopics = boolProp('AUTO_DELETE_BANNED_TOPICS_ENABLED')
 const whitelistEnabled = boolProp('WHITELIST_ENABLED')
 const cmdFilter = boolProp('BOT_COMMAND_FILTER')
 const adminNotifyEnabled = boolProp('ADMIN_NOTIFY_ENABLED')

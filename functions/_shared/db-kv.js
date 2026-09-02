@@ -304,6 +304,10 @@ export class KVStore {
     const start = (page - 1) * pageSize
     return { users: all.slice(start, start + pageSize), total: all.length }
   }
+  async getBlockedUsersWithThread() {
+    const raw = await this.getAllUsersRaw()
+    return raw.filter(u => u && u.is_blocked && u.thread_id && u.thread_id !== 0)
+  }
   async getNormalUsers(page = 1, pageSize = 20) {
     const raw = await this.getAllUsersRaw()
     const all = raw.filter(u => u && !u.is_blocked && u.is_verified)

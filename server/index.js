@@ -77,6 +77,7 @@ console.log('[server] 执行启动初始化...')
 {
   const { DB } = await import('../functions/_shared/db.js')
   const { ensureAdminInitializedOnce } = await import('../functions/_shared/admin-bootstrap.js')
+  const { startTopicCleanupScheduler } = await import('../functions/_shared/topic-cleanup.js')
   const startupDb = new DB(kv, d1, hyperdrive)
   const preferredDb = process.env.ACTIVE_DB === 'd1' && d1
     ? 'd1'
@@ -88,6 +89,9 @@ console.log('[server] 执行启动初始化...')
   await startupDb.autoRepair(false, preferredDb)
   await ensureAdminInitializedOnce({ db: startupDb, kv, env: process.env })
   console.log('[server] 管理员初始化完成')
+
+  // 启动每日定时清理被封禁用户话题调度器 (每天 UTC+8 08:00)
+  startTopicCleanupScheduler(startupDb, kv)
 }
 
 // ── 工具函数 ──────────────────────────────────────────────────────────────

@@ -323,6 +323,8 @@ const messages = {
   "settings.verify.maxAttemptsHint": "验证失败达上限后需重新发送消息。范围 1-10 次。",
   "settings.feature.autoUnblock": "自动解封申诉",
   "settings.feature.autoUnblockHint": "允许封禁用户发起申诉",
+  "settings.feature.autoDeleteBannedTopics": "定时删除封禁用户话题",
+  "settings.feature.autoDeleteBannedTopicsHint": "每天 UTC+8 08:00 (UTC 00:00) 自动调用 Telegram API 删除被封禁用户的话题",
   "settings.feature.whitelist": "白名单功能",
   "settings.feature.whitelistHint": "白名单用户跳过验证",
   "settings.feature.cmdFilter": "过滤机器人指令",

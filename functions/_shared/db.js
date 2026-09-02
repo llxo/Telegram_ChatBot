@@ -76,6 +76,7 @@ export class DB {
   async searchUsers(q, lim) { return (await this._store()).searchUsers(q, lim) }
   async getAllUsers(p, ps) { return (await this._store()).getAllUsers(p, ps) }
   async getBlockedUsers(p, ps) { return (await this._store()).getBlockedUsers(p, ps) }
+  async getBlockedUsersWithThread() { return (await this._store()).getBlockedUsersWithThread() }
   async getNormalUsers(p, ps) { return (await this._store()).getNormalUsers(p, ps) }
 
   async isWhitelisted(uid) { return (await this._store()).isWhitelisted(uid) }

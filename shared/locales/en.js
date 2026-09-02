@@ -323,6 +323,8 @@ const messages = {
   "settings.verify.maxAttemptsHint": "User must re-send message after exhausting all attempts. Range: 1-10.",
   "settings.feature.autoUnblock": "Auto appeal unblock",
   "settings.feature.autoUnblockHint": "Allow blocked users to submit appeals",
+  "settings.feature.autoDeleteBannedTopics": "Auto delete banned user topics",
+  "settings.feature.autoDeleteBannedTopicsHint": "Automatically call Telegram API to delete topics of banned users daily at UTC+8 08:00 (UTC 00:00)",
   "settings.feature.whitelist": "Whitelist feature",
   "settings.feature.whitelistHint": "Whitelisted users bypass verification",
   "settings.feature.cmdFilter": "Filter bot commands",

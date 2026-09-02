@@ -430,6 +430,9 @@ export class HyperdriveStore {
     ])
     return { users, total: countRow?.cnt || 0 }
   }
+  async getBlockedUsersWithThread() {
+    return this._all('SELECT * FROM users WHERE is_blocked=1 AND thread_id IS NOT NULL AND thread_id != 0')
+  }
   async getNormalUsers(page = 1, pageSize = 20) {
     const offset = (page - 1) * pageSize
     const [users, countRow] = await Promise.all([
